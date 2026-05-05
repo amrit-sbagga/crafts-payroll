@@ -56,5 +56,45 @@ describe("Employee input validation", () => {
       errors: { salary: "must_be_positive_number" }
     });
   });
+
+  it("returns ok: true when all fields are valid", () => {
+    expect(
+      validateEmployeeInput({
+        fullName: "Ada Lovelace",
+        jobTitle: "Engineer",
+        country: "IN",
+        salary: 100
+      })
+    ).toEqual({ ok: true, errors: {} });
+  });
+
+  it("treats whitespace-only string fields as missing", () => {
+    expect(
+      validateEmployeeInput({
+        fullName: "   ",
+        jobTitle: "   ",
+        country: "   ",
+        salary: 100
+      })
+    ).toEqual({
+      ok: false,
+      errors: {
+        fullName: "required",
+        jobTitle: "required",
+        country: "required"
+      }
+    });
+  });
+
+  it("accepts a decimal salary greater than zero", () => {
+    expect(
+      validateEmployeeInput({
+        fullName: "Ada Lovelace",
+        jobTitle: "Engineer",
+        country: "IN",
+        salary: 49.99
+      })
+    ).toEqual({ ok: true, errors: {} });
+  });
 });
 
