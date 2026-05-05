@@ -24,3 +24,11 @@ Design includes pagination, indexed queries, and aggregate reporting patterns.
 - Incremental commits
 - Readable modular code
 - Fast deterministic tests
+
+## Backend Architecture
+
+Used Next.js route handlers to ship full-stack features quickly with lower operational overhead.
+
+Prisma provides typed database access and clean migrations.
+
+Server-side pagination and filtering were chosen for performance with large employee datasets.

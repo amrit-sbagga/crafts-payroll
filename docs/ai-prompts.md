@@ -2,31 +2,26 @@
 
 ## Objective
 
-AI tools were used to accelerate development while manually reviewing and validating all generated output.
+AI tools were used to accelerate delivery while all outputs were manually reviewed and validated.
 
-## Initial Setup Prompt
+## Prompts Used So Far
 
-Requested a production-grade Next.js + TypeScript scaffold with:
-- Tailwind
-- Prisma-ready structure
-- Testing support
-- Modular folders
+### Project Setup
+- Generated Next.js + TypeScript scaffold
+- Structured scalable folders
 
-## Architecture Prompt
+### Testing
+- Configured Jest + React Testing Library
+- Created initial TDD validation tests
 
-Requested scalable folder structure using:
+### Backend Development
+- Generated Prisma Employee model
+- Built CRUD APIs using Next.js route handlers
+- Added pagination, search, and filtering
 
-src/
-- app
-- modules
-- components
-- lib
-- types
+## Human Oversight
 
-## Testing Prompt
-
-Requested Jest + React Testing Library configuration for fast deterministic tests.
-
-## Validation Approach
-
-All generated outputs were reviewed, adjusted, and tested before commit.
+- Reviewed generated code before commits
+- Verified APIs manually using REST Client
+- Confirmed database writes in PostgreSQL
+- Adjusted prompts to avoid over engineering
