@@ -10,9 +10,12 @@
     "lint": "next lint",
     "format": "prettier . --check",
     "format:write": "prettier . --write",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:ci": "jest --ci",
+    "test": "jest -c jest.config.cjs",
+    "test:watch": "jest -c jest.config.cjs --watch",
+    "test:ci": "jest -c jest.config.cjs --ci --runInBand --coverage",
+    "test:unit": "jest -c jest.config.cjs --testPathPatterns=tests/unit",
+    "test:unit:watch": "jest -c jest.config.cjs --testPathPatterns=tests/unit --watch",
+    "test:unit:ci": "jest -c jest.config.cjs --testPathPatterns=tests/unit --ci --runInBand --coverage --coverageDirectory=coverage/unit",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"
@@ -26,6 +29,7 @@
     "react-dom": "latest"
   },
   "devDependencies": {
+    "@testing-library/dom": "latest",
     "@testing-library/jest-dom": "latest",
     "@testing-library/react": "latest",
     "@testing-library/user-event": "latest",
@@ -43,6 +47,7 @@
     "prettier": "latest",
     "prisma": "latest",
     "tailwindcss": "latest",
+    "ts-node": "latest",
     "ts-jest": "latest",
     "typescript": "latest"
   }
