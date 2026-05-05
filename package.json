@@ -21,8 +21,9 @@
     "prisma:studio": "prisma studio"
   },
   "dependencies": {
-    "@prisma/client": "latest",
     "@prisma/adapter-pg": "latest",
+    "@prisma/client": "latest",
+    "@tailwindcss/postcss": "^4.2.4",
     "next": "latest",
     "pg": "latest",
     "react": "latest",
