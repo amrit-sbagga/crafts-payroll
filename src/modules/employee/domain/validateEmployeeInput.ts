@@ -1,4 +1,4 @@
-type EmployeeInput = {
+export type EmployeeInput = {
   fullName: string;
   jobTitle: string;
   country: string;
