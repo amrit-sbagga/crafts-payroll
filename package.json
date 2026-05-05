@@ -19,7 +19,9 @@
   },
   "dependencies": {
     "@prisma/client": "latest",
+    "@prisma/adapter-pg": "latest",
     "next": "latest",
+    "pg": "latest",
     "react": "latest",
     "react-dom": "latest"
   },
