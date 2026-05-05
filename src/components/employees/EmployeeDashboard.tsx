@@ -23,6 +23,11 @@ export default function EmployeeDashboard() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  function refresh() {
+    setRefreshKey(k => k + 1);
+  }
 
   useEffect(() => {
     const controller = new AbortController();
@@ -43,7 +48,7 @@ export default function EmployeeDashboard() {
       .catch(() => {});
 
     return () => controller.abort();
-  }, [search, country, jobTitle, page]);
+  }, [search, country, jobTitle, page, refreshKey]);
 
   function handleFilterChange(
     setter: React.Dispatch<React.SetStateAction<string>>
@@ -57,12 +62,11 @@ export default function EmployeeDashboard() {
   async function handleDelete(id: string) {
     if (!confirm("Delete this employee?")) return;
     await fetch(`/api/employees/${id}`, { method: "DELETE" });
-    // Refresh the current page; if last item on page, go back one
-    setPage(prev =>
-      employees.length === 1 && prev > 1 ? prev - 1 : prev
-    );
-    // Force re-fetch by toggling search no-op — simplest: trigger via key change
-    setSearch(s => s);
+    if (employees.length === 1 && page > 1) {
+      setPage(p => p - 1);
+    } else {
+      refresh();
+    }
   }
 
   function openAdd() {
@@ -78,7 +82,7 @@ export default function EmployeeDashboard() {
   function handleModalSuccess() {
     setModalOpen(false);
     setEditingEmployee(null);
-    setSearch(s => s); // trigger re-fetch
+    refresh();
   }
 
   return (
