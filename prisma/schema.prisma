@@ -5,3 +5,16 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model Employee {
+  id        String   @id @default(cuid())
+  fullName  String
+  jobTitle  String
+  country   String
+  salary    Decimal  @db.Decimal(12, 2)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([country])
+  @@index([jobTitle])
+}
