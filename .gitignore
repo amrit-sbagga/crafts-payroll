@@ -8,5 +8,10 @@ coverage
 .env.local
 .env.*.local
 
+# VS Code: keep shared settings/extensions, ignore the rest
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
 # Prisma
 prisma/dev.db
