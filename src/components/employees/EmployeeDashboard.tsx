@@ -588,8 +588,8 @@ export default function EmployeeDashboard() {
   return (
     <div className="flex h-[calc(100dvh-56px)] flex-col overflow-hidden bg-gray-50 transition-colors duration-300 dark:bg-gray-950">
       {/* ── Compact toolbar header ── */}
-      <header className="border-b border-gray-200 bg-white/95 backdrop-blur transition-colors duration-300 dark:border-gray-800 dark:bg-gray-950/90">
-        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+      <header className="border-b border-gray-200 bg-white/95 px-4 backdrop-blur transition-colors duration-300 sm:px-6 dark:border-gray-800 dark:bg-gray-950/90">
+        <div className="mx-auto flex w-full max-w-[1500px] flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
             <h1 className="text-lg font-semibold tracking-tight text-gray-900 sm:text-xl dark:text-gray-100">
               Employees
