@@ -392,61 +392,119 @@ export default function InsightsDashboard() {
           <SectionLabel>Job Title Analysis</SectionLabel>
 
           <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-            <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
-              <div>
-                <h2 className="text-sm font-semibold text-gray-900">
-                  Job Title Salary Overview
-                </h2>
-                <p className="mt-0.5 text-xs text-gray-400">
-                  Average compensation by role
-                  {selectedCountry && (
-                    <span className="ml-1.5 rounded-full bg-blue-50 px-2 py-0.5 font-semibold text-blue-600">
-                      {selectedCountry}
-                    </span>
-                  )}
-                </p>
+
+            {/* Card header — title + dropdown */}
+            <div className="border-b border-gray-100 px-6 py-5">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                {/* Title block */}
+                <div>
+                  <h2 className="text-base font-semibold text-gray-900">
+                    Job Title Salary Insights
+                  </h2>
+                  <p className="mt-0.5 text-xs text-gray-400">
+                    Average compensation by role
+                    {selectedCountry && (
+                      <span className="ml-1.5 inline-flex items-center rounded-full bg-violet-50 px-2 py-0.5 text-xs font-semibold text-violet-600">
+                        {selectedCountry}
+                      </span>
+                    )}
+                  </p>
+                </div>
+
+                {/* Styled country dropdown */}
+                <div className="flex shrink-0 flex-col gap-1">
+                  <label
+                    htmlFor="country-filter"
+                    className="text-xs font-medium text-gray-500"
+                  >
+                    Filter by Country
+                  </label>
+                  <div className="relative">
+                    <select
+                      id="country-filter"
+                      value={selectedCountry}
+                      onChange={e => setSelectedCountry(e.target.value)}
+                      className="w-44 appearance-none rounded-lg border border-gray-200 bg-white py-2 pl-3 pr-8 text-sm text-gray-700 shadow-sm outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                    >
+                      <option value="">All Countries</option>
+                      {countryOptions.map(c => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                    {/* Custom chevron */}
+                    <div className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center">
+                      <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <select
-                value={selectedCountry}
-                onChange={e => setSelectedCountry(e.target.value)}
-                className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm text-gray-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100"
-              >
-                <option value="">All Countries</option>
-                {countryOptions.map(c => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
             </div>
 
-            <div className="px-6 py-2">
+            {/* Table */}
+            <div className="px-2">
               {jobError ? (
-                <div className="py-4">
+                <div className="p-6">
                   <ErrorState message="Failed to load job title salary data." />
                 </div>
               ) : (
                 <table className="min-w-full text-sm">
                   <thead>
-                    <tr className="border-b border-gray-100">
-                      <th className="py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">Role</th>
-                      <th className="py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">Avg Salary</th>
-                      <th className="py-3 pl-6 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">Relative</th>
+                    <tr className="border-b border-gray-100 bg-gray-50/60">
+                      <th className="w-10 px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-400">
+                        #
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">
+                        Job Title
+                      </th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">
+                        Avg Salary
+                      </th>
+                      <th className="px-4 py-3 pl-6 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">
+                        Vs. Top
+                      </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-50">
+                  <tbody>
                     {jobLoading ? (
-                      <RowSkeleton cols={3} />
+                      <RowSkeleton cols={4} />
                     ) : (
                       jobSalaries.map((row, i) => (
-                        <tr key={row.jobTitle} className="animate-fade-in-up group hover:bg-violet-50/20 transition-colors" style={{ animationDelay: `${i * 40}ms`, opacity: 0 }}>
-                          <td className="py-4">
-                            <span className="inline-flex items-center rounded-md bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700">
+                        <tr
+                          key={row.jobTitle}
+                          className="animate-fade-in-up border-b border-gray-50 transition-colors duration-150 last:border-0 hover:bg-violet-50/30"
+                          style={{ animationDelay: `${i * 40}ms`, opacity: 0 }}
+                        >
+                          {/* Rank */}
+                          <td className="px-4 py-4 text-center">
+                            <span className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
+                              i === 0
+                                ? "bg-amber-100 text-amber-700"
+                                : i === 1
+                                ? "bg-gray-100 text-gray-600"
+                                : i === 2
+                                ? "bg-orange-50 text-orange-600"
+                                : "bg-gray-50 text-gray-400"
+                            }`}>
+                              {i + 1}
+                            </span>
+                          </td>
+
+                          {/* Job title — bold pill */}
+                          <td className="px-4 py-4">
+                            <span className="inline-flex items-center rounded-lg border border-violet-100 bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-800">
                               {row.jobTitle}
                             </span>
                           </td>
-                          <td className="py-4 text-right font-semibold tabular-nums text-violet-700">
+
+                          {/* Avg salary — right aligned, bold violet */}
+                          <td className="px-4 py-4 text-right font-bold tabular-nums text-violet-700">
                             {fmt(row.avgSalary)}
                           </td>
-                          <td className="py-4 pl-6">
+
+                          {/* Relative bar */}
+                          <td className="px-4 py-4 pl-6">
                             <SalaryBar value={row.avgSalary} max={maxJobAvg} color="bg-violet-500" />
                           </td>
                         </tr>
@@ -456,6 +514,7 @@ export default function InsightsDashboard() {
                 </table>
               )}
             </div>
+
           </div>
         </section>
 
