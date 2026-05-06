@@ -1,4 +1,5 @@
 "use client";
+import { useEffect, useState } from "react";
 
 import {
   PieChart,
@@ -31,15 +32,7 @@ export interface PieChartCardProps {
 
 // ─── Defaults ─────────────────────────────────────────────────────────────────
 
-const DEFAULT_COLORS = [
-  "#6366f1", // indigo
-  "#10b981", // emerald
-  "#f59e0b", // amber
-  "#3b82f6", // blue
-  "#8b5cf6", // violet
-  "#ef4444", // red
-  "#06b6d4", // cyan
-];
+const DEFAULT_COLORS = ["#818cf8", "#34d399", "#fbbf24", "#60a5fa", "#a78bfa", "#f87171", "#22d3ee"];
 
 // ─── Custom tooltip ───────────────────────────────────────────────────────────
 
@@ -55,15 +48,15 @@ function ChartTooltip({
   if (!active || !payload?.length) return null;
   const { name, value, payload: inner } = payload[0];
   return (
-    <div className="rounded-xl border border-gray-100 bg-white px-3 py-2 shadow-lg">
+    <div className="rounded-xl border border-gray-100 bg-white px-3 py-2 shadow-lg dark:border-gray-700 dark:bg-gray-900 dark:shadow-black/30">
       <div className="mb-0.5 flex items-center gap-1.5">
         <span
           className="inline-block h-2.5 w-2.5 rounded-full"
           style={{ background: inner.fill }}
         />
-        <p className="text-xs font-semibold text-gray-500">{name}</p>
+        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">{name}</p>
       </div>
-      <p className="text-sm font-bold text-gray-900">{formatValue(value)}</p>
+      <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{formatValue(value)}</p>
     </div>
   );
 }
@@ -84,7 +77,7 @@ function ChartLegend({
             className="inline-block h-2.5 w-2.5 rounded-full"
             style={{ background: entry.color }}
           />
-          <span className="text-xs text-gray-500">{entry.value}</span>
+          <span className="text-xs text-gray-500 dark:text-gray-400">{entry.value}</span>
         </li>
       ))}
     </ul>
@@ -96,12 +89,12 @@ function ChartLegend({
 function PieChartSkeleton({ height }: { height: number }) {
   return (
     <div className="flex flex-col items-center justify-center gap-4 py-4" style={{ height }}>
-      <div className="h-36 w-36 animate-pulse rounded-full bg-gray-100" />
+      <div className="h-36 w-36 animate-pulse rounded-full bg-gray-100 dark:bg-gray-800" />
       <div className="flex gap-3">
         {[60, 48, 72].map((w, i) => (
           <div
             key={i}
-            className="h-3 animate-pulse rounded-full bg-gray-100"
+            className="h-3 animate-pulse rounded-full bg-gray-100 dark:bg-gray-800"
             style={{ width: w, animationDelay: `${i * 80}ms` }}
           />
         ))}
@@ -121,13 +114,24 @@ export default function PieChartCard({
   height = 260,
   loading = false,
 }: PieChartCardProps) {
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const update = () => setIsDark(root.classList.contains("dark"));
+    update();
+    const observer = new MutationObserver(update);
+    observer.observe(root, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-shadow duration-200 hover:shadow-md">
+    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-200 hover:shadow-md dark:border-gray-800 dark:bg-gray-900 dark:shadow-black/20 dark:hover:shadow-black/30">
       {/* Header */}
-      <div className="border-b border-gray-100 px-6 py-5">
-        <h3 className="text-base font-semibold text-gray-900">{title}</h3>
+      <div className="border-b border-gray-100 px-6 py-5 dark:border-gray-800">
+        <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">{title}</h3>
         {subtitle && (
-          <p className="mt-0.5 text-xs text-gray-400">{subtitle}</p>
+          <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{subtitle}</p>
         )}
       </div>
 
@@ -140,7 +144,7 @@ export default function PieChartCard({
             className="flex items-center justify-center"
             style={{ height }}
           >
-            <p className="text-sm text-gray-400">No data available</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">No data available</p>
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={height}>
@@ -158,7 +162,7 @@ export default function PieChartCard({
                   <Cell
                     key={i}
                     fill={colors[i % colors.length]}
-                    stroke="white"
+                    stroke={isDark ? "#111827" : "#ffffff"}
                     strokeWidth={2}
                   />
                 ))}

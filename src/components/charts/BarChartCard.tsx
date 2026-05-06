@@ -1,4 +1,5 @@
 "use client";
+import { useEffect, useState } from "react";
 
 import {
   BarChart,
@@ -120,20 +121,38 @@ export default function BarChartCard({
   height = 280,
   loading = false,
 }: BarChartCardProps) {
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const update = () => setIsDark(root.classList.contains("dark"));
+    update();
+    const observer = new MutationObserver(update);
+    observer.observe(root, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
+
+  const gridStroke = isDark ? "#1f2937" : "#f1f5f9";
+  const xTickFill = isDark ? "#9ca3af" : "#64748b";
+  const yTickFill = isDark ? "#6b7280" : "#94a3b8";
+  const cursorFill = isDark ? "#111827" : "#f8fafc";
+  const refStroke = isDark ? "#6b7280" : "#94a3b8";
+  const labelFill = isDark ? "#9ca3af" : "#64748b";
+
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-shadow duration-200 hover:shadow-md">
+    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-200 hover:shadow-md dark:border-gray-800 dark:bg-gray-900 dark:shadow-black/20 dark:hover:shadow-black/30">
       {/* Header */}
-      <div className="flex items-start justify-between border-b border-gray-100 px-6 py-5">
+      <div className="flex items-start justify-between border-b border-gray-100 px-6 py-5 dark:border-gray-800">
         <div>
-          <h3 className="text-base font-semibold text-gray-900">{title}</h3>
+          <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">{title}</h3>
           {subtitle && (
-            <p className="mt-0.5 text-xs text-gray-400">{subtitle}</p>
+            <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{subtitle}</p>
           )}
         </div>
         {referenceValue !== undefined && !loading && (
-          <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-1.5 text-right">
-            <p className="text-xs font-medium text-blue-400">{referenceLabel}</p>
-            <p className="text-sm font-bold tabular-nums text-blue-700">
+          <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-right dark:border-blue-900/60 dark:bg-blue-950/40">
+            <p className="text-xs font-medium text-blue-500 dark:text-blue-300">{referenceLabel}</p>
+            <p className="text-sm font-bold tabular-nums text-blue-700 dark:text-blue-200">
               {formatValue(referenceValue)}
             </p>
           </div>
@@ -146,7 +165,7 @@ export default function BarChartCard({
           <BarChartSkeleton height={height} />
         ) : data.length === 0 ? (
           <div className="flex items-center justify-center" style={{ height }}>
-            <p className="text-sm text-gray-400">No data available</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">No data available</p>
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={height}>
@@ -158,17 +177,17 @@ export default function BarChartCard({
               <CartesianGrid
                 strokeDasharray="3 3"
                 vertical={false}
-                stroke="#f1f5f9"
+                stroke={gridStroke}
               />
               <XAxis
                 dataKey={xKey}
-                tick={{ fontSize: 12, fill: "#64748b", fontWeight: 500 }}
+                tick={{ fontSize: 12, fill: xTickFill, fontWeight: 500 }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
                 tickFormatter={formatValue}
-                tick={{ fontSize: 11, fill: "#94a3b8" }}
+                tick={{ fontSize: 11, fill: yTickFill }}
                 axisLine={false}
                 tickLine={false}
                 width={70}
@@ -181,21 +200,21 @@ export default function BarChartCard({
                     referenceLabel={referenceLabel}
                   />
                 }
-                cursor={{ fill: "#f8fafc", radius: 6 }}
+                cursor={{ fill: cursorFill, radius: 6 }}
               />
 
               {/* Reference line for overall average */}
               {referenceValue !== undefined && (
                 <ReferenceLine
                   y={referenceValue}
-                  stroke="#94a3b8"
+                  stroke={refStroke}
                   strokeDasharray="5 4"
                   strokeWidth={1.5}
                   label={{
                     value: referenceLabel,
                     position: "insideTopRight",
                     fontSize: 10,
-                    fill: "#94a3b8",
+                    fill: refStroke,
                     fontWeight: 600,
                   }}
                 />
@@ -217,7 +236,7 @@ export default function BarChartCard({
                   dataKey={yKey}
                   position="top"
                   formatter={(v: unknown) => formatValue(Number(v))}
-                  style={{ fontSize: 10, fill: "#64748b", fontWeight: 600 }}
+                  style={{ fontSize: 10, fill: labelFill, fontWeight: 600 }}
                 />
               </Bar>
             </BarChart>

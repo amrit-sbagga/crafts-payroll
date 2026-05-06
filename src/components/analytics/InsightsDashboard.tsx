@@ -36,18 +36,18 @@ function Toast({
     <div
       className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-2xl border px-4 py-3 shadow-xl transition-all duration-300 animate-fade-in-up ${
         isSuccess
-          ? "border-emerald-100 bg-white text-emerald-700"
-          : "border-red-100 bg-white text-red-600"
+          ? "border-emerald-200 bg-white text-emerald-700 dark:border-emerald-900/60 dark:bg-gray-900 dark:text-emerald-300"
+          : "border-red-200 bg-white text-red-600 dark:border-red-900/60 dark:bg-gray-900 dark:text-red-300"
       }`}
     >
       {isSuccess ? (
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-50">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950/40">
           <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
           </svg>
         </span>
       ) : (
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-red-50">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-red-50 dark:bg-red-950/40">
           <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -87,7 +87,7 @@ function MetricCard({
   loading: boolean;
 }) {
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
+    <div className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900 dark:shadow-black/20 dark:hover:shadow-black/30">
       {/* Colored left accent bar */}
       <div className={`absolute inset-y-0 left-0 w-1 rounded-l-2xl ${accentColor}`} />
 
@@ -100,22 +100,22 @@ function MetricCard({
         </div>
 
         {/* Label */}
-        <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">
+        <p className="text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">
           {label}
         </p>
 
         {/* Value */}
         {loading ? (
           <div className="mt-2 space-y-2">
-            <div className="h-9 w-32 animate-pulse rounded-lg bg-gray-100" />
-            <div className="h-3 w-24 animate-pulse rounded bg-gray-100" />
+            <div className="h-9 w-32 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800" />
+            <div className="h-3 w-24 animate-pulse rounded bg-gray-100 dark:bg-gray-800" />
           </div>
         ) : (
           <>
-            <p className="mt-1 text-3xl font-extrabold tabular-nums tracking-tight text-gray-900">
+            <p className="mt-1 text-3xl font-extrabold tabular-nums tracking-tight text-gray-900 dark:text-gray-100">
               {value}
             </p>
-            <p className="mt-1.5 text-xs text-gray-400">{description}</p>
+            <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">{description}</p>
           </>
         )}
       </div>
@@ -128,11 +128,11 @@ function MetricCard({
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-3">
-      <div className="h-px flex-1 bg-gray-200" />
-      <span className="text-xs font-bold uppercase tracking-widest text-gray-500">
+      <div className="h-px flex-1 bg-gray-200 dark:bg-gray-800" />
+      <span className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
         {children}
       </span>
-      <div className="h-px flex-1 bg-gray-200" />
+      <div className="h-px flex-1 bg-gray-200 dark:bg-gray-800" />
     </div>
   );
 }
@@ -151,13 +151,13 @@ function SalaryBar({
   const pct = max > 0 ? Math.round((value / max) * 100) : 0;
   return (
     <div className="flex items-center gap-2.5">
-      <div className="h-2 w-32 overflow-hidden rounded-full bg-gray-100">
+      <div className="h-2 w-32 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
         <div
           className={`h-full rounded-full ${color} transition-all duration-700 ease-out`}
           style={{ width: `${pct}%` }}
         />
       </div>
-      <span className="w-8 text-right text-xs tabular-nums text-gray-400">{pct}%</span>
+      <span className="w-8 text-right text-xs tabular-nums text-gray-500 dark:text-gray-400">{pct}%</span>
     </div>
   );
 }
@@ -170,11 +170,11 @@ function RowSkeleton({ cols }: { cols: number }) {
   return (
     <>
       {Array.from({ length: 5 }).map((_, i) => (
-        <tr key={i} className="border-b border-gray-50 last:border-0">
+        <tr key={i} className="border-b border-gray-100 last:border-0 dark:border-gray-800">
           {Array.from({ length: cols }).map((_, j) => (
             <td key={j} className="px-4 py-4">
               <div
-                className={`h-3.5 animate-pulse rounded-full bg-gray-100 ${SKELETON_WIDTHS[(i + j) % SKELETON_WIDTHS.length]}`}
+                className={`h-3.5 animate-pulse rounded-full bg-gray-100 dark:bg-gray-800 ${SKELETON_WIDTHS[(i + j) % SKELETON_WIDTHS.length]}`}
                 style={{ animationDelay: `${(i + j) * 60}ms` }}
               />
             </td>
@@ -190,10 +190,10 @@ function EmptyTableState({ message }: { message: string }) {
     <tr>
       <td colSpan={99} className="px-4 py-12 text-center">
         <div className="flex flex-col items-center gap-2">
-          <svg className="h-8 w-8 text-gray-300" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+          <svg className="h-8 w-8 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776" />
           </svg>
-          <p className="text-sm font-medium text-gray-400">{message}</p>
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{message}</p>
         </div>
       </td>
     </tr>
@@ -204,7 +204,7 @@ function EmptyTableState({ message }: { message: string }) {
 
 function ErrorState({ message }: { message: string }) {
   return (
-    <div className="flex items-center gap-2 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+    <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">
       <svg className="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
         <path fillRule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm-.75-4.75a.75.75 0 0 0 1.5 0v-4.5a.75.75 0 0 0-1.5 0v4.5Zm.75-7a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z" clipRule="evenodd" />
       </svg>
@@ -291,7 +291,7 @@ export default function InsightsDashboard() {
   const anyLoading = summaryLoading || countryLoading || jobLoading;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 text-gray-900 transition-colors duration-300 dark:bg-gray-950 dark:text-gray-100">
 
       {/* ── Toast ── */}
       {toast && (
@@ -299,21 +299,21 @@ export default function InsightsDashboard() {
       )}
 
       {/* ── Page Header ── */}
-      <header className="border-b border-gray-200 bg-white">
+      <header className="border-b border-gray-200 bg-white/95 backdrop-blur transition-colors duration-300 dark:border-gray-800 dark:bg-gray-950/90">
         <div className="mx-auto max-w-7xl px-6 py-7">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">
+              <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-gray-100">
                 Salary Insights
               </h1>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
                 Understand workforce compensation trends across countries and roles
               </p>
             </div>
 
             <div className="flex shrink-0 items-center gap-3">
               {/* Live data badge */}
-              <span className="hidden items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 sm:inline-flex">
+              <span className="hidden items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 sm:inline-flex dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                 Live Data
               </span>
@@ -322,11 +322,11 @@ export default function InsightsDashboard() {
               <button
                 onClick={handleExport}
                 disabled={exporting || anyLoading}
-                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition-all duration-200 hover:border-gray-300 hover:bg-gray-50 hover:shadow-md active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition-all duration-200 hover:border-gray-300 hover:bg-gray-50 hover:shadow-md active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:border-gray-600 dark:hover:bg-gray-800 dark:hover:shadow-black/20"
               >
                 {exporting ? (
                   <>
-                    <svg className="h-4 w-4 animate-spin text-gray-400" fill="none" viewBox="0 0 24 24">
+                    <svg className="h-4 w-4 animate-spin text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                     </svg>
@@ -334,7 +334,7 @@ export default function InsightsDashboard() {
                   </>
                 ) : (
                   <>
-                    <svg className="h-4 w-4 text-gray-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <svg className="h-4 w-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
                     </svg>
                     Export Report
@@ -441,19 +441,19 @@ export default function InsightsDashboard() {
           )}
 
           {/* Detail table */}
-          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-shadow duration-200 hover:shadow-md">
+          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-200 hover:shadow-md dark:border-gray-800 dark:bg-gray-900 dark:shadow-black/20 dark:hover:shadow-black/30">
             {/* Card header */}
-            <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5">
+            <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5 dark:border-gray-800">
               <div>
-                <h2 className="text-base font-semibold text-gray-900">
+                <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
                   Country Salary Overview
                 </h2>
-                <p className="mt-0.5 text-xs text-gray-400">
+                <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
                   Salary distribution across countries
                 </p>
               </div>
               {!countryLoading && (
-                <span className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600">
+                <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-300">
                   {countrySalaries.length} countries
                 </span>
               )}
@@ -468,20 +468,20 @@ export default function InsightsDashboard() {
               ) : (
                 <table className="min-w-full text-sm">
                   <thead>
-                    <tr className="border-b border-gray-100 bg-gray-50/60">
-                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">
+                    <tr className="border-b border-gray-100 bg-gray-50/60 dark:border-gray-800 dark:bg-gray-900/70">
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                         Country
                       </th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">
+                      <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                         Min Salary
                       </th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">
+                      <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                         Max Salary
                       </th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">
+                      <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                         Avg Salary
                       </th>
-                      <th className="px-4 py-3 pl-6 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">
+                      <th className="px-4 py-3 pl-6 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                         Spread
                       </th>
                     </tr>
@@ -495,17 +495,17 @@ export default function InsightsDashboard() {
                       countrySalaries.map((row, i) => (
                         <tr
                           key={row.country}
-                          className={`group border-b border-gray-50 transition-colors duration-150 last:border-0 hover:bg-blue-50/30 ${
-                            i % 2 === 0 ? "bg-white" : "bg-gray-50/30"
+                          className={`group border-b border-gray-100 transition-colors duration-150 last:border-0 hover:bg-blue-50/40 dark:border-gray-800 dark:hover:bg-blue-950/20 ${
+                            i % 2 === 0 ? "bg-white dark:bg-gray-900" : "bg-gray-50/30 dark:bg-gray-900/70"
                           }`}
                         >
                           {/* Country pill */}
                           <td className="px-4 py-4">
                             <div className="flex items-center gap-2.5">
-                              <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-xs font-bold text-blue-700">
+                              <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-xs font-bold text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
                                 {row.country.charAt(0)}
                               </span>
-                              <span className="font-semibold text-gray-900">
+                              <span className="font-semibold text-gray-900 dark:text-gray-100">
                                 {row.country}
                               </span>
                             </div>
@@ -513,20 +513,20 @@ export default function InsightsDashboard() {
 
                           {/* Min — muted green */}
                           <td className="px-4 py-4 text-right tabular-nums">
-                            <span className="rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                            <span className="rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
                               {fmt(row.minSalary)}
                             </span>
                           </td>
 
                           {/* Max — muted amber */}
                           <td className="px-4 py-4 text-right tabular-nums">
-                            <span className="rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
+                            <span className="rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
                               {fmt(row.maxSalary)}
                             </span>
                           </td>
 
                           {/* Avg — bold blue */}
-                          <td className="px-4 py-4 text-right font-bold tabular-nums text-blue-700">
+                          <td className="px-4 py-4 text-right font-bold tabular-nums text-blue-700 dark:text-blue-300">
                             {fmt(row.avgSalary)}
                           </td>
 
@@ -548,20 +548,20 @@ export default function InsightsDashboard() {
         <section className="space-y-4">
           <SectionLabel>Job Title Analysis</SectionLabel>
 
-          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-shadow duration-200 hover:shadow-md">
+          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-200 hover:shadow-md dark:border-gray-800 dark:bg-gray-900 dark:shadow-black/20 dark:hover:shadow-black/30">
 
             {/* Card header — title + dropdown */}
-            <div className="border-b border-gray-100 px-6 py-5">
+            <div className="border-b border-gray-100 px-6 py-5 dark:border-gray-800">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 {/* Title block */}
                 <div>
-                  <h2 className="text-base font-semibold text-gray-900">
+                  <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
                     Job Title Salary Insights
                   </h2>
-                  <p className="mt-0.5 text-xs text-gray-400">
+                  <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
                     Average compensation by role
                     {selectedCountry && (
-                      <span className="ml-1.5 inline-flex items-center rounded-full bg-violet-50 px-2 py-0.5 text-xs font-semibold text-violet-600">
+                      <span className="ml-1.5 inline-flex items-center rounded-full bg-violet-50 px-2 py-0.5 text-xs font-semibold text-violet-600 dark:bg-violet-950/40 dark:text-violet-300">
                         {selectedCountry}
                       </span>
                     )}
@@ -572,7 +572,7 @@ export default function InsightsDashboard() {
                 <div className="flex shrink-0 flex-col gap-1">
                   <label
                     htmlFor="country-filter"
-                    className="text-xs font-medium text-gray-500"
+                    className="text-xs font-medium text-gray-600 dark:text-gray-400"
                   >
                     Filter by Country
                   </label>
@@ -581,7 +581,7 @@ export default function InsightsDashboard() {
                       id="country-filter"
                       value={selectedCountry}
                       onChange={e => setSelectedCountry(e.target.value)}
-                      className="w-44 appearance-none rounded-lg border border-gray-200 bg-white py-2 pl-3 pr-8 text-sm text-gray-700 shadow-sm outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+                      className="w-44 appearance-none rounded-lg border border-gray-200 bg-white py-2 pl-3 pr-8 text-sm text-gray-700 shadow-sm outline-none transition-colors duration-200 focus:border-violet-400 focus:ring-2 focus:ring-violet-100 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:focus:border-violet-500 dark:focus:ring-violet-900/40"
                     >
                       <option value="">All Countries</option>
                       {countryOptions.map(c => (
@@ -590,7 +590,7 @@ export default function InsightsDashboard() {
                     </select>
                     {/* Custom chevron */}
                     <div className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center">
-                      <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <svg className="h-4 w-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                       </svg>
                     </div>
@@ -608,17 +608,17 @@ export default function InsightsDashboard() {
               ) : (
                 <table className="min-w-full text-sm">
                   <thead>
-                    <tr className="border-b border-gray-100 bg-gray-50/60">
-                      <th className="w-10 px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-400">
+                    <tr className="border-b border-gray-100 bg-gray-50/60 dark:border-gray-800 dark:bg-gray-900/70">
+                      <th className="w-10 px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                         #
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                         Job Title
                       </th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">
+                      <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                         Avg Salary
                       </th>
-                      <th className="px-4 py-3 pl-6 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">
+                      <th className="px-4 py-3 pl-6 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                         Vs. Top
                       </th>
                     </tr>
@@ -632,19 +632,19 @@ export default function InsightsDashboard() {
                       jobSalaries.map((row, i) => (
                         <tr
                           key={row.jobTitle}
-                          className="animate-fade-in-up border-b border-gray-50 transition-colors duration-150 last:border-0 hover:bg-violet-50/30"
+                          className="animate-fade-in-up border-b border-gray-100 transition-colors duration-150 last:border-0 hover:bg-violet-50/30 dark:border-gray-800 dark:hover:bg-violet-950/20"
                           style={{ animationDelay: `${i * 40}ms`, opacity: 0 }}
                         >
                           {/* Rank */}
                           <td className="px-4 py-4 text-center">
                             <span className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
                               i === 0
-                                ? "bg-amber-100 text-amber-700"
+                                ? "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
                                 : i === 1
-                                ? "bg-gray-100 text-gray-600"
+                                ? "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300"
                                 : i === 2
-                                ? "bg-orange-50 text-orange-600"
-                                : "bg-gray-50 text-gray-400"
+                                ? "bg-orange-50 text-orange-600 dark:bg-orange-950/40 dark:text-orange-300"
+                                : "bg-gray-50 text-gray-400 dark:bg-gray-800 dark:text-gray-500"
                             }`}>
                               {i + 1}
                             </span>
@@ -652,13 +652,13 @@ export default function InsightsDashboard() {
 
                           {/* Job title — bold pill */}
                           <td className="px-4 py-4">
-                            <span className="inline-flex items-center rounded-lg border border-violet-100 bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-800">
+                            <span className="inline-flex items-center rounded-lg border border-violet-100 bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-800 dark:border-violet-900/60 dark:bg-violet-950/40 dark:text-violet-300">
                               {row.jobTitle}
                             </span>
                           </td>
 
                           {/* Avg salary — right aligned, bold violet */}
-                          <td className="px-4 py-4 text-right font-bold tabular-nums text-violet-700">
+                          <td className="px-4 py-4 text-right font-bold tabular-nums text-violet-700 dark:text-violet-300">
                             {fmt(row.avgSalary)}
                           </td>
 
