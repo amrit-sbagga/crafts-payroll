@@ -46,7 +46,7 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
       jobTitle: String(body.jobTitle ?? ""),
       country: String(body.country ?? ""),
       department: String(body.department ?? "Engineering"),
-      gender: String(body.gender ?? "Other"),
+      gender: String(body.gender ?? "Male"),
       joiningDate: String(body.joiningDate ?? ""),
       avatarUrl: body.avatarUrl ? String(body.avatarUrl) : undefined,
       salary: Number(body.salary)

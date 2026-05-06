@@ -17,8 +17,20 @@ function serialize<T extends { salary: Prisma.Decimal }>(employee: T) {
   return { ...employee, salary: Number(employee.salary) };
 }
 
+function normalizeJoiningDate(value: string) {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return new Date(`${value}T00:00:00.000Z`);
+  }
+  return value;
+}
+
 export async function createEmployee(data: EmployeeInput) {
-  const employee = await prisma.employee.create({ data });
+  const employee = await prisma.employee.create({
+    data: {
+      ...data,
+      joiningDate: normalizeJoiningDate(data.joiningDate)
+    }
+  });
   return serialize(employee);
 }
 
@@ -69,7 +81,13 @@ export async function getEmployeeById(id: string) {
 }
 
 export async function updateEmployee(id: string, data: EmployeeInput) {
-  const employee = await prisma.employee.update({ where: { id }, data });
+  const employee = await prisma.employee.update({
+    where: { id },
+    data: {
+      ...data,
+      joiningDate: normalizeJoiningDate(data.joiningDate)
+    }
+  });
   return serialize(employee);
 }
 

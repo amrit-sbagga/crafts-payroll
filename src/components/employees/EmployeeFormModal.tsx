@@ -46,7 +46,7 @@ export default function EmployeeFormModal({
     jobTitle: employee?.jobTitle ?? "",
     country: employee?.country ?? "",
     department: employee?.department ?? "Engineering",
-    gender: employee?.gender ?? "Other",
+    gender: employee?.gender ?? "Male",
     joiningDate: employee?.joiningDate ? employee.joiningDate.slice(0, 10) : "",
     avatarUrl: employee?.avatarUrl ?? "",
     salary: employee ? String(employee.salary) : ""
