@@ -1,8 +1,17 @@
+export type Department =
+  | "Engineering"
+  | "HR"
+  | "Finance"
+  | "Sales"
+  | "Operations"
+  | "Marketing";
+
 export type Employee = {
   id: string;
   fullName: string;
   jobTitle: string;
   country: string;
+  department: Department;
   salary: number;
   createdAt: string;
   updatedAt: string;

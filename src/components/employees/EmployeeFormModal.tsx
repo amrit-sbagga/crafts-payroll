@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import type { Employee } from "@/types/employee";
+import type { Employee, Department } from "@/types/employee";
 
 type Props = {
   employee: Employee | null;
@@ -13,10 +13,20 @@ type FormState = {
   fullName: string;
   jobTitle: string;
   country: string;
+  department: Department;
   salary: string;
 };
 
 type FieldErrors = Partial<Record<keyof FormState, string>>;
+
+const DEPARTMENTS: Department[] = [
+  "Engineering",
+  "HR",
+  "Finance",
+  "Sales",
+  "Operations",
+  "Marketing"
+];
 
 export default function EmployeeFormModal({
   employee,
@@ -30,6 +40,7 @@ export default function EmployeeFormModal({
     fullName: employee?.fullName ?? "",
     jobTitle: employee?.jobTitle ?? "",
     country: employee?.country ?? "",
+    department: employee?.department ?? "Engineering",
     salary: employee ? String(employee.salary) : ""
   });
 
@@ -50,7 +61,7 @@ export default function EmployeeFormModal({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
     setErrors(prev => ({ ...prev, [name]: undefined }));
@@ -140,8 +151,8 @@ export default function EmployeeFormModal({
               onChange={handleChange}
             />
 
-            {/* Job Title + Country — side by side */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* Job Title + Country + Department */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <Field
                 label="Job Title"
                 name="jobTitle"
@@ -156,6 +167,13 @@ export default function EmployeeFormModal({
                 placeholder="e.g. India"
                 value={form.country}
                 error={errors.country}
+                onChange={handleChange}
+              />
+              <SelectField
+                label="Department"
+                name="department"
+                value={form.department}
+                options={DEPARTMENTS}
                 onChange={handleChange}
               />
             </div>
@@ -228,7 +246,7 @@ const Field = function Field({
   value: string;
   error?: string;
   hint?: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
   ref?: React.Ref<HTMLInputElement>;
 }) {
   return (
@@ -260,6 +278,40 @@ const Field = function Field({
           {error.replace(/_/g, " ")}
         </p>
       )}
+    </div>
+  );
+};
+
+const SelectField = function SelectField({
+  label,
+  name,
+  value,
+  options,
+  onChange
+}: {
+  label: string;
+  name: string;
+  value: string;
+  options: string[];
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+}) {
+  return (
+    <div>
+      <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+        {label}
+      </label>
+      <select
+        name={name}
+        value={value}
+        onChange={onChange}
+        className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:focus:border-blue-500 dark:focus:bg-gray-900 dark:focus:ring-blue-900/40"
+      >
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
     </div>
   );
 };

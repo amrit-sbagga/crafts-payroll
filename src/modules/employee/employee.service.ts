@@ -11,15 +11,7 @@ export type ListEmployeesParams = {
 };
 
 // Prisma returns Decimal for salary — convert to number for JSON serialisation.
-function serialize(employee: {
-  id: string;
-  fullName: string;
-  jobTitle: string;
-  country: string;
-  salary: Prisma.Decimal;
-  createdAt: Date;
-  updatedAt: Date;
-}) {
+function serialize<T extends { salary: Prisma.Decimal }>(employee: T) {
   return { ...employee, salary: Number(employee.salary) };
 }
 

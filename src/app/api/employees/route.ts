@@ -34,6 +34,7 @@ export async function POST(request: NextRequest) {
       fullName: String(body.fullName ?? ""),
       jobTitle: String(body.jobTitle ?? ""),
       country: String(body.country ?? ""),
+      department: String(body.department ?? "Engineering"),
       salary: Number(body.salary)
     };
 

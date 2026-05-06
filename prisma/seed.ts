@@ -24,6 +24,14 @@ const JOB_TITLES = [
 ];
 
 const COUNTRIES = ["India", "USA", "Germany", "UK", "Canada"];
+const DEPARTMENTS = [
+  "Engineering",
+  "HR",
+  "Finance",
+  "Sales",
+  "Operations",
+  "Marketing"
+] as const;
 
 const SALARY_RANGES: Record<string, [number, number]> = {
   India: [500_000, 2_500_000],
@@ -37,7 +45,7 @@ function randInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function pick<T>(arr: T[]): T {
+function pick<T>(arr: readonly T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
@@ -74,6 +82,7 @@ async function main() {
       fullName: `${pick(firstNames)} ${pick(lastNames)}`,
       jobTitle: pick(JOB_TITLES),
       country,
+      department: pick(DEPARTMENTS),
       salary: randInt(minSalary, maxSalary)
     };
   });

@@ -81,6 +81,10 @@ function TableSkeleton() {
           <td className="px-5 py-4">
             <div className="h-6 w-28 rounded-md bg-gray-100 dark:bg-gray-800" />
           </td>
+          {/* Department badge */}
+          <td className="px-5 py-4">
+            <div className="h-6 w-24 rounded-md bg-gray-100 dark:bg-gray-800" />
+          </td>
           {/* Country pill */}
           <td className="px-5 py-4">
             <div className="h-5 w-16 rounded-full bg-gray-100 dark:bg-gray-800" />
@@ -107,7 +111,7 @@ function TableSkeleton() {
 function EmptyState({ hasFilters }: { hasFilters: boolean }) {
   return (
     <tr>
-      <td colSpan={5}>
+      <td colSpan={6}>
         <div className="flex flex-col items-center py-14 text-center">
           <svg
             className="mb-3 h-10 w-10 text-gray-300 dark:text-gray-600"
@@ -379,6 +383,9 @@ export default function EmployeeDashboard() {
                   Job Title
                 </th>
                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                  Department
+                </th>
+                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
                   Country
                 </th>
                 <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
@@ -417,6 +424,13 @@ export default function EmployeeDashboard() {
                     <td className="px-5 py-4">
                       <span className="inline-flex items-center rounded-md bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600 transition-colors duration-150 group-hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:group-hover:bg-gray-700">
                         {emp.jobTitle}
+                      </span>
+                    </td>
+
+                    {/* Country */}
+                    <td className="px-5 py-4">
+                      <span className="inline-flex items-center rounded-md bg-violet-50 px-2.5 py-1 text-xs font-semibold text-violet-700 dark:bg-violet-950/40 dark:text-violet-300">
+                        {emp.department}
                       </span>
                     </td>
 
