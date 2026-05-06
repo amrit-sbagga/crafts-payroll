@@ -1,7 +1,8 @@
 import {
   getCountrySalaryStats,
   getJobTitleSalaryStats,
-  getGlobalSalarySummary
+  getGlobalSalarySummary,
+  getDepartmentSalaryStats
 } from "@/modules/employee/employeeAnalytics.service";
 
 // Replace the real Prisma client with a mock so tests need no database.
@@ -168,5 +169,49 @@ describe("getGlobalSalarySummary", () => {
       maxSalary: 0,
       avgSalary: 0
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getDepartmentSalaryStats
+// ---------------------------------------------------------------------------
+
+describe("getDepartmentSalaryStats", () => {
+  it("returns headcount and avg salary grouped by department", async () => {
+    mockGroupBy.mockResolvedValue([
+      {
+        department: "Engineering",
+        _count: { _all: 12 },
+        _avg: { salary: 120000 }
+      },
+      {
+        department: "HR",
+        _count: { _all: 4 },
+        _avg: { salary: 70000 }
+      }
+    ] as never);
+
+    const result = await getDepartmentSalaryStats();
+
+    expect(result).toEqual([
+      { department: "Engineering", headcount: 12, avgSalary: 120000 },
+      { department: "HR", headcount: 4, avgSalary: 70000 }
+    ]);
+  });
+
+  it("defaults null average to 0", async () => {
+    mockGroupBy.mockResolvedValue([
+      {
+        department: "Marketing",
+        _count: { _all: 2 },
+        _avg: { salary: null }
+      }
+    ] as never);
+
+    const result = await getDepartmentSalaryStats();
+
+    expect(result).toEqual([
+      { department: "Marketing", headcount: 2, avgSalary: 0 }
+    ]);
   });
 });

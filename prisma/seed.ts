@@ -4,17 +4,20 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { pathToFileURL } from "url";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const seedDir = path.dirname(fileURLToPath(import.meta.url));
 
-const prisma = new PrismaClient({
-  adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! })
-});
+function createPrismaClient() {
+  return new PrismaClient({
+    adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! })
+  });
+}
 
-const TOTAL = 10_000;
-const BATCH_SIZE = 500;
+export const TOTAL = 10_000;
+export const BATCH_SIZE = 500;
 
-const JOB_TITLES = [
+export const JOB_TITLES = [
   "Software Engineer",
   "Manager",
   "Designer",
@@ -23,8 +26,8 @@ const JOB_TITLES = [
   "DevOps Engineer"
 ];
 
-const COUNTRIES = ["India", "USA", "Germany", "UK", "Canada"];
-const DEPARTMENTS = [
+export const COUNTRIES = ["India", "USA", "Germany", "UK", "Canada"];
+export const DEPARTMENTS = [
   "Engineering",
   "HR",
   "Finance",
@@ -33,7 +36,7 @@ const DEPARTMENTS = [
   "Marketing"
 ] as const;
 
-const SALARY_RANGES: Record<string, [number, number]> = {
+export const SALARY_RANGES: Record<string, [number, number]> = {
   India: [500_000, 2_500_000],
   USA: [60_000, 150_000],
   Germany: [50_000, 120_000],
@@ -41,72 +44,85 @@ const SALARY_RANGES: Record<string, [number, number]> = {
   Canada: [55_000, 130_000]
 };
 
-function randInt(min: number, max: number): number {
+export function randInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function pick<T>(arr: readonly T[]): T {
+export function pick<T>(arr: readonly T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-function loadLines(file: string): string[] {
+export function loadLines(file: string): string[] {
   return fs
-    .readFileSync(path.join(__dirname, "data", file), "utf-8")
+    .readFileSync(path.join(seedDir, "data", file), "utf-8")
     .split("\n")
     .map(s => s.trim())
     .filter(Boolean);
 }
 
-async function main() {
-  const shouldClean = process.argv.includes("--clean");
-
-  const firstNames = loadLines("first_names.txt");
-  const lastNames = loadLines("last_names.txt");
-
-  console.log(
-    `Loaded ${firstNames.length} first names, ${lastNames.length} last names`
-  );
-
-  if (shouldClean) {
-    console.log("Cleaning existing employee data...");
-    await prisma.employee.deleteMany();
-    console.log("Done.");
-  }
-
-  console.log(`Generating ${TOTAL.toLocaleString()} employees...`);
-
-  const employees = Array.from({ length: TOTAL }, () => {
-    const country = pick(COUNTRIES);
-    const [minSalary, maxSalary] = SALARY_RANGES[country];
-    return {
-      fullName: `${pick(firstNames)} ${pick(lastNames)}`,
-      jobTitle: pick(JOB_TITLES),
-      country,
-      department: pick(DEPARTMENTS),
-      salary: randInt(minSalary, maxSalary)
-    };
-  });
-
-  const totalBatches = Math.ceil(TOTAL / BATCH_SIZE);
-
-  console.log(
-    `Inserting in ${totalBatches} batches of ${BATCH_SIZE} records each...\n`
-  );
-
-  for (let i = 0; i < totalBatches; i++) {
-    const batch = employees.slice(i * BATCH_SIZE, (i + 1) * BATCH_SIZE);
-    await prisma.employee.createMany({ data: batch });
-    process.stdout.write(
-      `  Batch ${String(i + 1).padStart(2)}/${totalBatches} — ${((i + 1) * BATCH_SIZE).toLocaleString()} rows inserted\r`
-    );
-  }
-
-  console.log(`\n\n✓ Seeded ${TOTAL.toLocaleString()} employees successfully.`);
+export function buildEmployeeRecord(firstNames: string[], lastNames: string[]) {
+  const country = pick(COUNTRIES);
+  const [minSalary, maxSalary] = SALARY_RANGES[country];
+  return {
+    fullName: `${pick(firstNames)} ${pick(lastNames)}`,
+    jobTitle: pick(JOB_TITLES),
+    country,
+    department: pick(DEPARTMENTS),
+    salary: randInt(minSalary, maxSalary)
+  };
 }
 
-main()
-  .catch(err => {
-    console.error("Seed failed:", err);
-    process.exit(1);
-  })
-  .finally(() => prisma.$disconnect());
+export async function main() {
+  const prisma = createPrismaClient();
+  const shouldClean = process.argv.includes("--clean");
+  try {
+    const firstNames = loadLines("first_names.txt");
+    const lastNames = loadLines("last_names.txt");
+
+    console.log(
+      `Loaded ${firstNames.length} first names, ${lastNames.length} last names`
+    );
+
+    if (shouldClean) {
+      console.log("Cleaning existing employee data...");
+      await prisma.employee.deleteMany();
+      console.log("Done.");
+    }
+
+    console.log(`Generating ${TOTAL.toLocaleString()} employees...`);
+
+    const employees = Array.from({ length: TOTAL }, () =>
+      buildEmployeeRecord(firstNames, lastNames)
+    );
+
+    const totalBatches = Math.ceil(TOTAL / BATCH_SIZE);
+
+    console.log(
+      `Inserting in ${totalBatches} batches of ${BATCH_SIZE} records each...\n`
+    );
+
+    for (let i = 0; i < totalBatches; i++) {
+      const batch = employees.slice(i * BATCH_SIZE, (i + 1) * BATCH_SIZE);
+      await prisma.employee.createMany({ data: batch });
+      process.stdout.write(
+        `  Batch ${String(i + 1).padStart(2)}/${totalBatches} — ${((i + 1) * BATCH_SIZE).toLocaleString()} rows inserted\r`
+      );
+    }
+
+    console.log(`\n\n✓ Seeded ${TOTAL.toLocaleString()} employees successfully.`);
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+const isDirectRun =
+  process.argv[1] !== undefined &&
+  pathToFileURL(process.argv[1]).href === import.meta.url;
+
+if (isDirectRun) {
+  main()
+    .catch(err => {
+      console.error("Seed failed:", err);
+      process.exit(1);
+    });
+}
