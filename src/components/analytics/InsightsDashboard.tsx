@@ -6,7 +6,7 @@ import type {
   JobTitleSalaryStats,
   GlobalSalarySummary
 } from "@/modules/employee/employeeAnalytics.service";
-import { BarChartCard, PieChartCard } from "@/components/charts";
+import { BarChartCard, PieChartCard, SalaryDistributionChart } from "@/components/charts";
 
 function fmt(value: number): string {
   return value.toLocaleString("en-US", { maximumFractionDigits: 0 });
@@ -302,6 +302,12 @@ export default function InsightsDashboard() {
               />
             </div>
           )}
+        </section>
+
+        {/* ── Section 1b: Salary Distribution ── */}
+        <section className="space-y-4">
+          <SectionLabel>Salary Distribution</SectionLabel>
+          <SalaryDistributionChart />
         </section>
 
         {/* ── Section 2: Country Analysis ── */}
