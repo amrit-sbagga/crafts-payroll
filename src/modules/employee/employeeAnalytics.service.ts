@@ -18,6 +18,12 @@ export type GlobalSalarySummary = {
   avgSalary: number;
 };
 
+export type DepartmentSalaryStats = {
+  department: string;
+  headcount: number;
+  avgSalary: number;
+};
+
 export async function getCountrySalaryStats(): Promise<CountrySalaryStats[]> {
   const rows = await prisma.employee.groupBy({
     by: ["country"],
@@ -63,4 +69,19 @@ export async function getGlobalSalarySummary(): Promise<GlobalSalarySummary> {
     maxSalary: Number(result._max.salary ?? 0),
     avgSalary: Number(result._avg.salary ?? 0)
   };
+}
+
+export async function getDepartmentSalaryStats(): Promise<DepartmentSalaryStats[]> {
+  const rows = await prisma.employee.groupBy({
+    by: ["department"],
+    _count: { _all: true },
+    _avg: { salary: true },
+    orderBy: { department: "asc" }
+  });
+
+  return rows.map((row) => ({
+    department: row.department,
+    headcount: row._count._all,
+    avgSalary: Number(row._avg.salary ?? 0)
+  }));
 }

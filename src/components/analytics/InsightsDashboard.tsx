@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import type {
   CountrySalaryStats,
+  DepartmentSalaryStats,
   JobTitleSalaryStats,
   GlobalSalarySummary
 } from "@/modules/employee/employeeAnalytics.service";
@@ -357,15 +358,18 @@ export default function InsightsDashboard() {
   const [summary, setSummary] = useState<GlobalSalarySummary | null>(null);
   const [totalEmployees, setTotalEmployees] = useState<number | null>(null);
   const [countrySalaries, setCountrySalaries] = useState<CountrySalaryStats[]>([]);
+  const [departmentSalaries, setDepartmentSalaries] = useState<DepartmentSalaryStats[]>([]);
   const [jobSalaries, setJobSalaries] = useState<JobTitleSalaryStats[]>([]);
 
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [countryLoading, setCountryLoading] = useState(true);
+  const [departmentLoading, setDepartmentLoading] = useState(true);
   const [jobLoading, setJobLoading] = useState(true);
 
   const [selectedCountry, setSelectedCountry] = useState("");
   const [summaryError, setSummaryError] = useState(false);
   const [countryError, setCountryError] = useState(false);
+  const [departmentError, setDepartmentError] = useState(false);
   const [jobError, setJobError] = useState(false);
 
   const [exporting, setExporting] = useState(false);
@@ -434,6 +438,16 @@ export default function InsightsDashboard() {
   }, []);
 
   useEffect(() => {
+    setDepartmentLoading(true);
+    setDepartmentError(false);
+    fetch("/api/analytics/department-salaries")
+      .then(r => r.json())
+      .then(json => setDepartmentSalaries(json.data ?? []))
+      .catch(() => setDepartmentError(true))
+      .finally(() => setDepartmentLoading(false));
+  }, []);
+
+  useEffect(() => {
     setJobLoading(true);
     setJobError(false);
     const params = new URLSearchParams();
@@ -447,9 +461,22 @@ export default function InsightsDashboard() {
 
   const countryOptions = countrySalaries.map(c => c.country);
   const maxCountryAvg = Math.max(...countrySalaries.map(r => r.avgSalary), 1);
+  const maxDepartmentAvg = Math.max(...departmentSalaries.map(r => r.avgSalary), 1);
   const maxJobAvg = Math.max(...jobSalaries.map(r => r.avgSalary), 1);
+  const totalDepartmentHeadcount = departmentSalaries.reduce((sum, row) => sum + row.headcount, 0);
+  const departmentAverageAcrossGroups =
+    departmentSalaries.length > 0
+      ? Math.round(
+          departmentSalaries.reduce((sum, row) => sum + row.avgSalary, 0) /
+            departmentSalaries.length
+        )
+      : 0;
+  const highestPayingDepartment = departmentSalaries.reduce<DepartmentSalaryStats | null>(
+    (best, row) => (!best || row.avgSalary > best.avgSalary ? row : best),
+    null
+  );
 
-  const anyLoading = summaryLoading || countryLoading || jobLoading;
+  const anyLoading = summaryLoading || countryLoading || departmentLoading || jobLoading;
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 transition-colors duration-300 dark:bg-gray-950 dark:text-gray-100">
@@ -703,6 +730,136 @@ export default function InsightsDashboard() {
               )}
             </div>
           </div>
+        </section>
+
+        {/* ── Section 2.5: Department Analytics ── */}
+        <section className="space-y-5">
+          <SectionLabel>Department Analytics</SectionLabel>
+
+          {departmentError ? (
+            <ErrorState message="Failed to load department analytics." />
+          ) : (
+            <>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <MetricCard
+                  iconBg="bg-indigo-50"
+                  accentColor="bg-indigo-500"
+                  icon={
+                    <svg className="h-5 w-5 text-indigo-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 7.5h6m-6 4.5h6m-6 4.5h6m3-9h9m-9 4.5h9m-9 4.5h9" />
+                    </svg>
+                  }
+                  label="Department Headcount"
+                  description="Total employees across departments"
+                  value={departmentLoading ? "—" : totalDepartmentHeadcount.toLocaleString()}
+                  loading={departmentLoading}
+                />
+                <MetricCard
+                  iconBg="bg-cyan-50"
+                  accentColor="bg-cyan-500"
+                  icon={
+                    <svg className="h-5 w-5 text-cyan-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 3v18h18M7 14.25 10.5 10l3 2.25 4.5-6" />
+                    </svg>
+                  }
+                  label="Average Salary by Department"
+                  description="Mean of department average salaries"
+                  value={departmentLoading ? "—" : fmt(departmentAverageAcrossGroups)}
+                  loading={departmentLoading}
+                />
+                <MetricCard
+                  iconBg="bg-rose-50"
+                  accentColor="bg-rose-500"
+                  icon={
+                    <svg className="h-5 w-5 text-rose-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m3 17 6-6 4 4 8-8" />
+                    </svg>
+                  }
+                  label="Highest Paying Department"
+                  description="Department with top average salary"
+                  value={departmentLoading ? "—" : highestPayingDepartment?.department ?? "—"}
+                  loading={departmentLoading}
+                />
+              </div>
+
+              <BarChartCard
+                title="Average Salary by Department"
+                subtitle="One bar per department"
+                data={departmentSalaries.map(r => ({ department: r.department, avg: r.avgSalary }))}
+                xKey="department"
+                yKey="avg"
+                color="#60a5fa"
+                highlightColor="#1d4ed8"
+                referenceValue={summary?.avgSalary}
+                referenceLabel="Overall Avg"
+                formatValue={fmt}
+                loading={departmentLoading || summaryLoading}
+                height={300}
+              />
+
+              <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-200 hover:shadow-md dark:border-gray-800 dark:bg-gray-900 dark:shadow-black/20 dark:hover:shadow-black/30">
+                <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5 dark:border-gray-800">
+                  <div>
+                    <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+                      Department Salary Overview
+                    </h2>
+                    <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                      Headcount and average compensation by department
+                    </p>
+                  </div>
+                </div>
+                <div className="px-2">
+                  <table className="min-w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-100 bg-gray-50/60 dark:border-gray-800 dark:bg-gray-900/70">
+                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                          Department
+                        </th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                          Headcount
+                        </th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                          Avg Salary
+                        </th>
+                        <th className="px-4 py-3 pl-6 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                          Relative
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {departmentLoading ? (
+                        <RowSkeleton cols={4} />
+                      ) : departmentSalaries.length === 0 ? (
+                        <EmptyTableState message="No department analytics available." />
+                      ) : (
+                        departmentSalaries.map((row, i) => (
+                          <tr
+                            key={row.department}
+                            className={`border-b border-gray-100 transition-colors duration-150 last:border-0 hover:bg-indigo-50/30 dark:border-gray-800 dark:hover:bg-indigo-950/20 ${
+                              i % 2 === 0 ? "bg-white dark:bg-gray-900" : "bg-gray-50/30 dark:bg-gray-900/70"
+                            }`}
+                          >
+                            <td className="px-4 py-4 font-semibold text-gray-900 dark:text-gray-100">
+                              {row.department}
+                            </td>
+                            <td className="px-4 py-4 text-right tabular-nums text-gray-700 dark:text-gray-300">
+                              {row.headcount.toLocaleString()}
+                            </td>
+                            <td className="px-4 py-4 text-right font-bold tabular-nums text-indigo-700 dark:text-indigo-300">
+                              {fmt(row.avgSalary)}
+                            </td>
+                            <td className="px-4 py-4 pl-6">
+                              <SalaryBar value={row.avgSalary} max={maxDepartmentAvg} color="bg-indigo-500" />
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          )}
         </section>
 
         {/* ── Section 3: Job Title Analysis ── */}
