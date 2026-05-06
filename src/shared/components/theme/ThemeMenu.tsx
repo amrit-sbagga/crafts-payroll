@@ -42,8 +42,7 @@ export default function ThemeMenu() {
         title="Settings"
       >
         <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M11.983 5.25c.401-1.16 2.042-1.16 2.443 0 .246.709 1.014 1.105 1.733.89 1.176-.35 2.034.84 1.427 1.79-.371.58-.149 1.36.497 1.689 1.056.538 1.056 2.022 0 2.56-.646.329-.868 1.109-.497 1.689.607.95-.251 2.14-1.427 1.79-.719-.215-1.487.181-1.733.89-.401 1.16-2.042 1.16-2.443 0-.246-.709-1.014-1.105-1.733-.89-1.176.35-2.034-.84-1.427-1.79.371-.58.149-1.36-.497-1.689-1.056-.538-1.056-2.022 0-2.56.646-.329.868-1.109.497-1.689-.607-.95.251-2.14 1.427-1.79.719.215 1.487-.181 1.733-.89Z" />
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h7m3 0h6M9 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm11 6h-7m-3 0H4m15 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM4 18h7m3 0h6m-11 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z" />
         </svg>
         <span className="leading-none">Settings</span>
       </button>
