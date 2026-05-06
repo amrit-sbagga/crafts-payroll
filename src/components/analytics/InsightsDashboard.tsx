@@ -16,31 +16,53 @@ function fmt(value: number): string {
 function MetricCard({
   icon,
   iconBg,
+  accentColor,
   label,
+  description,
   value,
   loading
 }: {
   icon: React.ReactNode;
   iconBg: string;
+  accentColor: string;
   label: string;
+  description: string;
   value: string;
   loading: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
-      <div className={`mb-3 inline-flex h-9 w-9 items-center justify-center rounded-xl ${iconBg}`}>
-        {icon}
-      </div>
-      <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">
-        {label}
-      </p>
-      {loading ? (
-        <div className="mt-2 h-7 w-28 animate-pulse rounded-lg bg-gray-100" />
-      ) : (
-        <p className="mt-1 text-2xl font-bold tabular-nums text-gray-900">
-          {value}
+    <div className={`relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md`}>
+      {/* Colored left accent bar */}
+      <div className={`absolute inset-y-0 left-0 w-1 rounded-l-2xl ${accentColor}`} />
+
+      <div className="pl-2">
+        {/* Icon + label row */}
+        <div className="mb-3 flex items-center justify-between">
+          <div className={`inline-flex h-9 w-9 items-center justify-center rounded-xl ${iconBg}`}>
+            {icon}
+          </div>
+        </div>
+
+        {/* Label */}
+        <p className="text-xs font-medium uppercase tracking-widest text-gray-400">
+          {label}
         </p>
-      )}
+
+        {/* Value */}
+        {loading ? (
+          <div className="mt-2 space-y-1.5">
+            <div className="h-8 w-32 animate-pulse rounded-lg bg-gray-100" />
+            <div className="h-3 w-20 animate-pulse rounded bg-gray-100" />
+          </div>
+        ) : (
+          <>
+            <p className="mt-1 text-3xl font-extrabold tabular-nums tracking-tight text-gray-900">
+              {value}
+            </p>
+            <p className="mt-1 text-xs text-gray-400">{description}</p>
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -203,48 +225,56 @@ export default function InsightsDashboard() {
           {summaryError ? (
             <ErrorState message="Failed to load global salary summary." />
           ) : (
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <MetricCard
                 iconBg="bg-blue-50"
+                accentColor="bg-blue-500"
                 icon={
                   <svg className="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
                   </svg>
                 }
                 label="Total Employees"
+                description="Active workforce records"
                 value={totalEmployees !== null ? totalEmployees.toLocaleString() : "—"}
                 loading={summaryLoading}
               />
               <MetricCard
                 iconBg="bg-emerald-50"
+                accentColor="bg-emerald-500"
                 icon={
                   <svg className="h-5 w-5 text-emerald-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941" />
                   </svg>
                 }
-                label="Overall Avg Salary"
+                label="Average Salary"
+                description="Across all employees"
                 value={summary ? fmt(summary.avgSalary) : "—"}
                 loading={summaryLoading}
               />
               <MetricCard
                 iconBg="bg-amber-50"
+                accentColor="bg-amber-400"
                 icon={
                   <svg className="h-5 w-5 text-amber-500" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
                   </svg>
                 }
                 label="Highest Salary"
+                description="Top compensation recorded"
                 value={summary ? fmt(summary.maxSalary) : "—"}
                 loading={summaryLoading}
               />
               <MetricCard
                 iconBg="bg-violet-50"
+                accentColor="bg-violet-500"
                 icon={
                   <svg className="h-5 w-5 text-violet-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
                   </svg>
                 }
                 label="Lowest Salary"
+                description="Floor compensation recorded"
                 value={summary ? fmt(summary.minSalary) : "—"}
                 loading={summaryLoading}
               />
