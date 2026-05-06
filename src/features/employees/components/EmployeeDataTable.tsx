@@ -27,7 +27,7 @@ export default function EmployeeDataTable({
   onDelete: (employee: Employee) => void;
 }) {
   return (
-    <DataTable minWidthClass="min-w-[980px]">
+    <DataTable minWidthClass="min-w-[980px]" tableClassName="density-table">
       <thead className="sticky top-0 z-10">
         <tr className="border-b border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-900">
           {[

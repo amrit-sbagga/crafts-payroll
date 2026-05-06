@@ -32,3 +32,36 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Density system: comfortable is default, compact tightens spacing. */
+:root[data-density="compact"] .density-header {
+  padding-top: 0.55rem;
+  padding-bottom: 0.55rem;
+}
+
+:root[data-density="compact"] .density-panel {
+  padding: 0.75rem;
+}
+
+:root[data-density="compact"] .density-stack {
+  gap: 0.5rem;
+}
+
+:root[data-density="compact"] .density-input {
+  padding: 0.4rem 0.65rem;
+  font-size: 0.8rem;
+}
+
+:root[data-density="compact"] .density-btn {
+  padding: 0.38rem 0.62rem;
+}
+
+:root[data-density="compact"] .density-table th {
+  padding-top: 0.55rem;
+  padding-bottom: 0.55rem;
+}
+
+:root[data-density="compact"] .density-table td {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}

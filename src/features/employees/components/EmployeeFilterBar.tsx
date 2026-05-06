@@ -30,7 +30,7 @@ function FilterInput({
         placeholder={placeholder}
         value={value}
         onChange={e => onChange(e.target.value)}
-        className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500 dark:focus:border-blue-500 dark:focus:bg-gray-900 dark:focus:ring-blue-900/40"
+        className="density-input w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500 dark:focus:border-blue-500 dark:focus:bg-gray-900 dark:focus:ring-blue-900/40"
       />
     </div>
   );
@@ -47,7 +47,7 @@ export default function EmployeeFilterBar({
   onClear
 }: Props) {
   return (
-    <aside className="self-start rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-colors duration-300 lg:sticky lg:top-3 dark:border-gray-800 dark:bg-gray-900">
+    <aside className="density-panel self-start rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-colors duration-300 lg:sticky lg:top-3 dark:border-gray-800 dark:bg-gray-900">
       <div className="mb-3 flex items-center justify-between">
         <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Filter & Search</p>
         {hasFilters && (
@@ -60,7 +60,7 @@ export default function EmployeeFilterBar({
           </button>
         )}
       </div>
-      <div className="space-y-3">
+      <div className="density-stack space-y-3">
         <FilterInput label="Employee name" placeholder="e.g. Ada Lovelace" value={search} onChange={onSearchChange} />
         <FilterInput label="Country" placeholder="e.g. India" value={country} onChange={onCountryChange} />
         <FilterInput label="Job title" placeholder="e.g. Engineer" value={jobTitle} onChange={onJobTitleChange} />
