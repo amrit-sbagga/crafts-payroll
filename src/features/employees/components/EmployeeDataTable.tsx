@@ -1,6 +1,7 @@
 import type { Employee } from "@/types/employee";
 import DataTable from "@/shared/components/DataTable";
 import EmptyState from "@/shared/components/EmptyState";
+import { formatCurrency, formatDate } from "@/lib/formatters";
 
 type SortField = "fullName" | "jobTitle" | "country" | "department" | "salary" | "createdAt";
 type SortOrder = "asc" | "desc";
@@ -124,18 +125,12 @@ export default function EmployeeDataTable({
 
               <td className="px-5 py-4 text-right">
                 <span className="font-semibold tabular-nums text-gray-800 dark:text-gray-200">
-                  {emp.salary.toLocaleString("en-US", { maximumFractionDigits: 0 })}
+                  {formatCurrency(emp.salary)}
                 </span>
               </td>
 
               <td className="px-5 py-4">
-                <span className="text-xs text-gray-600 dark:text-gray-300">
-                  {new Date(emp.createdAt).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
-                </span>
+                <span className="text-xs text-gray-600 dark:text-gray-300">{formatDate(emp.createdAt)}</span>
               </td>
 
               <td className="w-[120px] min-w-[120px] px-5 py-4">

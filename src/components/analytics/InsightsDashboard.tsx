@@ -14,13 +14,14 @@ import type {
 } from "@/modules/employee/employeeAnalytics.service";
 import type { ExportFormat, ExportSelection } from "@/lib/exportReport";
 import { exportReport } from "@/lib/exportReport";
+import { formatCurrency } from "@/lib/formatters";
 
 const BarChartCard = dynamic(() => import("@/components/charts/BarChartCard"), { ssr: false });
 const PieChartCard = dynamic(() => import("@/components/charts/PieChartCard"), { ssr: false });
 const SalaryDistributionChart = dynamic(() => import("@/components/charts/SalaryDistributionChart"), { ssr: false });
 
 function fmt(value: number): string {
-  return value.toLocaleString("en-US", { maximumFractionDigits: 0 });
+  return formatCurrency(value);
 }
 
 // ─── Toast ────────────────────────────────────────────────────────────────────
@@ -501,12 +502,6 @@ export default function InsightsDashboard() {
       <PageHeader
         title="Salary Insights"
         description="Understand workforce compensation trends across countries and roles"
-        actions={
-          <span className="hidden items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 sm:inline-flex dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-            Live Data
-          </span>
-        }
       />
 
       <main className="mx-auto max-w-[1500px] space-y-5 px-4 py-6 pb-12 sm:px-6 sm:py-8">

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import usePagination from "@/hooks/usePagination";
+import useSorting from "@/hooks/useSorting";
 import type { Employee, EmployeeMeta } from "@/types/employee";
 import PaginationBar from "@/features/employees/components/PaginationBar";
 import EmployeeDataTable from "@/features/employees/components/EmployeeDataTable";
@@ -293,10 +295,12 @@ export default function EmployeeDashboard() {
   const [search, setSearch] = useState("");
   const [country, setCountry] = useState("");
   const [jobTitle, setJobTitle] = useState("");
-  const [limit, setLimit] = useState(20);
-  const [page, setPage] = useState(1);
-  const [sortBy, setSortBy] = useState<SortField>("createdAt");
-  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
+  const { page, limit, setPage, setLimit, resetPage } = usePagination(1, 20);
+  const { sortBy, sortOrder, handleSort } = useSorting<SortField>(
+    "createdAt",
+    "desc",
+    (field) => (field === "createdAt" ? "desc" : "asc")
+  );
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
@@ -354,18 +358,8 @@ export default function EmployeeDashboard() {
   ) {
     return (e: React.ChangeEvent<HTMLInputElement>) => {
       setter(e.target.value);
-      setPage(1);
+      resetPage();
     };
-  }
-
-  function handleSort(column: SortField) {
-    if (sortBy === column) {
-      setSortOrder((current) => (current === "asc" ? "desc" : "asc"));
-    } else {
-      setSortBy(column);
-      setSortOrder(column === "createdAt" ? "desc" : "asc");
-    }
-    setPage(1);
   }
 
   async function handleDeleteConfirmed() {
@@ -480,7 +474,7 @@ export default function EmployeeDashboard() {
                     setSearch("");
                     setCountry("");
                     setJobTitle("");
-                    setPage(1);
+                    resetPage();
                   }}
                   className="text-xs font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-300 dark:hover:text-blue-200"
                 >
@@ -535,7 +529,10 @@ export default function EmployeeDashboard() {
                   hasFilters={hasFilters}
                   sortBy={sortBy}
                   sortOrder={sortOrder}
-                  onSort={handleSort}
+                  onSort={(field) => {
+                    handleSort(field);
+                    resetPage();
+                  }}
                   onEdit={(emp) => {
                     setEditingEmployee(emp);
                     setModalOpen(true);
@@ -552,7 +549,7 @@ export default function EmployeeDashboard() {
                   onPageChange={setPage}
                   onLimitChange={(nextLimit) => {
                     setLimit(nextLimit);
-                    setPage(1);
+                    resetPage();
                   }}
                 />
               </div>
