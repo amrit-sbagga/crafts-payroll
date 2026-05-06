@@ -6,6 +6,7 @@ import type {
   JobTitleSalaryStats,
   GlobalSalarySummary
 } from "@/modules/employee/employeeAnalytics.service";
+import { BarChartCard, PieChartCard } from "@/components/charts";
 
 function fmt(value: number): string {
   return value.toLocaleString("en-US", { maximumFractionDigits: 0 });
@@ -410,6 +411,20 @@ export default function InsightsDashboard() {
           </div>
         </section>
 
+        {/* ── Country Chart ── */}
+        {!countryError && (
+          <BarChartCard
+            title="Average Salary by Country"
+            subtitle="Visual comparison of average compensation per country"
+            data={countrySalaries.map(r => ({ country: r.country, avg: r.avgSalary }))}
+            xKey="country"
+            yKey="avg"
+            color="#3b82f6"
+            formatValue={fmt}
+            loading={countryLoading}
+          />
+        )}
+
         {/* ── Section 3: Job Title Analysis ── */}
         <section className="space-y-4">
           <SectionLabel>Job Title Analysis</SectionLabel>
@@ -542,6 +557,17 @@ export default function InsightsDashboard() {
 
           </div>
         </section>
+
+        {/* ── Job Title Chart ── */}
+        {!jobError && (
+          <PieChartCard
+            title="Salary Share by Role"
+            subtitle="Proportional average salary distribution across job titles"
+            data={jobSalaries.map(r => ({ name: r.jobTitle, value: Math.round(r.avgSalary) }))}
+            formatValue={fmt}
+            loading={jobLoading}
+          />
+        )}
 
       </main>
     </div>
