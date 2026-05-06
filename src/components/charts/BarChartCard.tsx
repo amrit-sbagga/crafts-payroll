@@ -140,7 +140,11 @@ export default function BarChartCard({
   const labelFill = isDark ? "#9ca3af" : "#64748b";
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-200 hover:shadow-md dark:border-gray-800 dark:bg-gray-900 dark:shadow-black/20 dark:hover:shadow-black/30">
+    <div
+      className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-200 hover:shadow-md dark:border-gray-800 dark:bg-gray-900 dark:shadow-black/20 dark:hover:shadow-black/30"
+      role="region"
+      aria-label={title}
+    >
       {/* Header */}
       <div className="flex items-start justify-between border-b border-gray-100 px-6 py-5 dark:border-gray-800">
         <div>

@@ -64,9 +64,17 @@ export default function ThemeToggle() {
     return () => media.removeEventListener("change", onChange);
   }, [mode, mounted]);
 
+  function moveSelection(direction: 1 | -1) {
+    const options = [ThemeMode.Light, ThemeMode.Dark, ThemeMode.System];
+    const currentIndex = options.indexOf(mode);
+    const nextIndex = (currentIndex + direction + options.length) % options.length;
+    setMode(options[nextIndex]);
+  }
+
   return (
     <div
       className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white p-1 text-xs font-semibold text-gray-700 transition-colors duration-200 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
+      role="radiogroup"
       aria-label="Theme mode"
       title={mounted ? `Theme: ${mode}${mode === ThemeMode.System ? ` (${resolvedTheme})` : ""}` : "Theme"}
     >
@@ -75,11 +83,23 @@ export default function ThemeToggle() {
           key={option}
           type="button"
           onClick={() => setMode(option)}
+          onKeyDown={(event) => {
+            if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+              event.preventDefault();
+              moveSelection(1);
+            }
+            if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+              event.preventDefault();
+              moveSelection(-1);
+            }
+          }}
           className={`rounded-md px-2 py-1 transition-colors duration-200 ${
             mode === option
               ? "bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-white"
               : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
           }`}
+          role="radio"
+          aria-checked={mode === option}
           aria-label={`Set ${option} mode`}
         >
           {option === ThemeMode.Light
