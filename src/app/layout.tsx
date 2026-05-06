@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import ThemeToggle from "@/components/theme/ThemeToggle";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -13,25 +14,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="bg-gray-50 text-gray-900 antialiased">
-        <nav className="border-b border-gray-200 bg-white px-6 py-3 shadow-sm">
+    <html lang="en" suppressHydrationWarning>
+      <body className="bg-gray-50 text-gray-900 antialiased transition-colors duration-300 dark:bg-gray-950 dark:text-gray-100">
+        <nav className="border-b border-gray-200 bg-white/95 px-6 py-3 shadow-sm backdrop-blur transition-colors duration-300 dark:border-gray-800 dark:bg-gray-950/90">
           <div className="mx-auto flex max-w-7xl items-center gap-6">
-            <span className="text-sm font-bold text-gray-800 tracking-wide uppercase">
+            <span className="text-sm font-bold tracking-wide uppercase text-gray-800 dark:text-gray-100">
               Salary Management
             </span>
             <Link
               href="/"
-              className="text-sm text-gray-600 hover:text-blue-600 transition-colors"
+              className="text-sm text-gray-600 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-300"
             >
               Employees
             </Link>
             <Link
               href="/insights"
-              className="text-sm text-gray-600 hover:text-blue-600 transition-colors"
+              className="text-sm text-gray-600 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-300"
             >
               Salary Insights
             </Link>
+            <div className="ml-auto">
+              <ThemeToggle />
+            </div>
           </div>
         </nav>
         {children}
