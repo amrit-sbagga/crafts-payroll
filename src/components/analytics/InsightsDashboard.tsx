@@ -31,35 +31,35 @@ function MetricCard({
   loading: boolean;
 }) {
   return (
-    <div className={`relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md`}>
+    <div className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
       {/* Colored left accent bar */}
       <div className={`absolute inset-y-0 left-0 w-1 rounded-l-2xl ${accentColor}`} />
 
       <div className="pl-2">
-        {/* Icon + label row */}
-        <div className="mb-3 flex items-center justify-between">
-          <div className={`inline-flex h-9 w-9 items-center justify-center rounded-xl ${iconBg}`}>
+        {/* Icon */}
+        <div className="mb-4 flex items-center justify-between">
+          <div className={`inline-flex h-10 w-10 items-center justify-center rounded-xl ${iconBg} transition-transform duration-200 group-hover:scale-110`}>
             {icon}
           </div>
         </div>
 
         {/* Label */}
-        <p className="text-xs font-medium uppercase tracking-widest text-gray-400">
+        <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">
           {label}
         </p>
 
         {/* Value */}
         {loading ? (
-          <div className="mt-2 space-y-1.5">
-            <div className="h-8 w-32 animate-pulse rounded-lg bg-gray-100" />
-            <div className="h-3 w-20 animate-pulse rounded bg-gray-100" />
+          <div className="mt-2 space-y-2">
+            <div className="h-9 w-32 animate-pulse rounded-lg bg-gray-100" />
+            <div className="h-3 w-24 animate-pulse rounded bg-gray-100" />
           </div>
         ) : (
           <>
             <p className="mt-1 text-3xl font-extrabold tabular-nums tracking-tight text-gray-900">
               {value}
             </p>
-            <p className="mt-1 text-xs text-gray-400">{description}</p>
+            <p className="mt-1.5 text-xs text-gray-400">{description}</p>
           </>
         )}
       </div>
@@ -73,7 +73,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-3">
       <div className="h-px flex-1 bg-gray-200" />
-      <span className="text-xs font-bold uppercase tracking-widest text-gray-400">
+      <span className="text-xs font-bold uppercase tracking-widest text-gray-500">
         {children}
       </span>
       <div className="h-px flex-1 bg-gray-200" />
@@ -94,33 +94,53 @@ function SalaryBar({
 }) {
   const pct = max > 0 ? Math.round((value / max) * 100) : 0;
   return (
-    <div className="flex items-center gap-2">
-      <div className="h-1.5 w-24 overflow-hidden rounded-full bg-gray-100">
+    <div className="flex items-center gap-2.5">
+      <div className="h-2 w-32 overflow-hidden rounded-full bg-gray-100">
         <div
-          className={`h-full rounded-full ${color} transition-all duration-500`}
+          className={`h-full rounded-full ${color} transition-all duration-700 ease-out`}
           style={{ width: `${pct}%` }}
         />
       </div>
-      <span className="text-xs text-gray-400">{pct}%</span>
+      <span className="w-8 text-right text-xs tabular-nums text-gray-400">{pct}%</span>
     </div>
   );
 }
 
 // ─── Skeletons ────────────────────────────────────────────────────────────────
 
+const SKELETON_WIDTHS = ["w-28", "w-20", "w-16", "w-12", "w-24"];
+
 function RowSkeleton({ cols }: { cols: number }) {
   return (
     <>
       {Array.from({ length: 5 }).map((_, i) => (
-        <tr key={i} className="animate-pulse border-b border-gray-50">
+        <tr key={i} className="border-b border-gray-50 last:border-0">
           {Array.from({ length: cols }).map((_, j) => (
-            <td key={j} className="px-4 py-3.5">
-              <div className="h-3.5 rounded bg-gray-100" />
+            <td key={j} className="px-4 py-4">
+              <div
+                className={`h-3.5 animate-pulse rounded-full bg-gray-100 ${SKELETON_WIDTHS[(i + j) % SKELETON_WIDTHS.length]}`}
+                style={{ animationDelay: `${(i + j) * 60}ms` }}
+              />
             </td>
           ))}
         </tr>
       ))}
     </>
+  );
+}
+
+function EmptyTableState({ message }: { message: string }) {
+  return (
+    <tr>
+      <td colSpan={99} className="px-4 py-12 text-center">
+        <div className="flex flex-col items-center gap-2">
+          <svg className="h-8 w-8 text-gray-300" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776" />
+          </svg>
+          <p className="text-sm font-medium text-gray-400">{message}</p>
+        </div>
+      </td>
+    </tr>
   );
 }
 
@@ -199,24 +219,25 @@ export default function InsightsDashboard() {
     <div className="min-h-screen bg-gray-50">
       {/* ── Page Header ── */}
       <header className="border-b border-gray-200 bg-white">
-        <div className="mx-auto max-w-7xl px-6 py-5">
-          <div className="flex items-start justify-between">
+        <div className="mx-auto max-w-7xl px-6 py-7">
+          <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+              <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">
                 Salary Insights
               </h1>
-              <p className="mt-0.5 text-sm text-gray-500">
-                Understand workforce compensation trends
+              <p className="mt-1 text-sm text-gray-500">
+                Understand workforce compensation trends across countries and roles
               </p>
             </div>
-            <span className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+            <span className="hidden items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 sm:inline-flex">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
               Live Data
             </span>
           </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl space-y-10 px-6 py-8">
+      <main className="mx-auto max-w-7xl space-y-12 px-6 py-10 pb-16">
 
         {/* ── Section 1: Key Metrics ── */}
         <section className="space-y-4">
@@ -286,7 +307,7 @@ export default function InsightsDashboard() {
         <section className="space-y-4">
           <SectionLabel>Country Analysis</SectionLabel>
 
-          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-shadow duration-200 hover:shadow-md">
             {/* Card header */}
             <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5">
               <div>
@@ -334,6 +355,8 @@ export default function InsightsDashboard() {
                   <tbody>
                     {countryLoading ? (
                       <RowSkeleton cols={5} />
+                    ) : countrySalaries.length === 0 ? (
+                      <EmptyTableState message="No country salary data available." />
                     ) : (
                       countrySalaries.map((row, i) => (
                         <tr
@@ -391,7 +414,7 @@ export default function InsightsDashboard() {
         <section className="space-y-4">
           <SectionLabel>Job Title Analysis</SectionLabel>
 
-          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-shadow duration-200 hover:shadow-md">
 
             {/* Card header — title + dropdown */}
             <div className="border-b border-gray-100 px-6 py-5">
@@ -469,6 +492,8 @@ export default function InsightsDashboard() {
                   <tbody>
                     {jobLoading ? (
                       <RowSkeleton cols={4} />
+                    ) : jobSalaries.length === 0 ? (
+                      <EmptyTableState message="No job title data for the selected country." />
                     ) : (
                       jobSalaries.map((row, i) => (
                         <tr
