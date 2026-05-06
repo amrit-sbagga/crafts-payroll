@@ -421,6 +421,8 @@ export default function InsightsDashboard() {
   const [jobLoading, setJobLoading] = useState(true);
 
   const [selectedCountry, setSelectedCountry] = useState("");
+  const [selectedDepartment, setSelectedDepartment] = useState("");
+  const [refreshTick, setRefreshTick] = useState(0);
   const [summaryError, setSummaryError] = useState(false);
   const [countryError, setCountryError] = useState(false);
   const [departmentError, setDepartmentError] = useState(false);
@@ -480,7 +482,7 @@ export default function InsightsDashboard() {
       })
       .catch(() => setSummaryError(true))
       .finally(() => setSummaryLoading(false));
-  }, []);
+  }, [refreshTick]);
 
   useEffect(() => {
     setCountryLoading(true);
@@ -490,7 +492,7 @@ export default function InsightsDashboard() {
       .then(json => setCountrySalaries(json.data ?? []))
       .catch(() => setCountryError(true))
       .finally(() => setCountryLoading(false));
-  }, []);
+  }, [refreshTick]);
 
   useEffect(() => {
     setDepartmentLoading(true);
@@ -500,7 +502,7 @@ export default function InsightsDashboard() {
       .then(json => setDepartmentSalaries(json.data ?? []))
       .catch(() => setDepartmentError(true))
       .finally(() => setDepartmentLoading(false));
-  }, []);
+  }, [refreshTick]);
 
   useEffect(() => {
     setJobLoading(true);
@@ -512,21 +514,25 @@ export default function InsightsDashboard() {
       .then(json => setJobSalaries(json.data ?? []))
       .catch(() => setJobError(true))
       .finally(() => setJobLoading(false));
-  }, [selectedCountry]);
+  }, [selectedCountry, refreshTick]);
 
   const countryOptions = countrySalaries.map(c => c.country);
+  const departmentOptions = departmentSalaries.map(d => d.department);
+  const filteredDepartmentSalaries = selectedDepartment
+    ? departmentSalaries.filter((row) => row.department === selectedDepartment)
+    : departmentSalaries;
   const maxCountryAvg = Math.max(...countrySalaries.map(r => r.avgSalary), 1);
-  const maxDepartmentAvg = Math.max(...departmentSalaries.map(r => r.avgSalary), 1);
+  const maxDepartmentAvg = Math.max(...filteredDepartmentSalaries.map(r => r.avgSalary), 1);
   const maxJobAvg = Math.max(...jobSalaries.map(r => r.avgSalary), 1);
-  const totalDepartmentHeadcount = departmentSalaries.reduce((sum, row) => sum + row.headcount, 0);
+  const totalDepartmentHeadcount = filteredDepartmentSalaries.reduce((sum, row) => sum + row.headcount, 0);
   const departmentAverageAcrossGroups =
-    departmentSalaries.length > 0
+    filteredDepartmentSalaries.length > 0
       ? Math.round(
-          departmentSalaries.reduce((sum, row) => sum + row.avgSalary, 0) /
-            departmentSalaries.length
+          filteredDepartmentSalaries.reduce((sum, row) => sum + row.avgSalary, 0) /
+            filteredDepartmentSalaries.length
         )
       : 0;
-  const highestPayingDepartment = departmentSalaries.reduce<DepartmentSalaryStats | null>(
+  const highestPayingDepartment = filteredDepartmentSalaries.reduce<DepartmentSalaryStats | null>(
     (best, row) => (!best || row.avgSalary > best.avgSalary ? row : best),
     null
   );
@@ -593,18 +599,6 @@ export default function InsightsDashboard() {
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                 Live Data
               </span>
-
-              {/* Export button */}
-              <button
-                onClick={() => setExportDialogOpen(true)}
-                disabled={anyLoading}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition-all duration-200 hover:border-gray-300 hover:bg-gray-50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:border-gray-600 dark:hover:bg-gray-800 dark:hover:shadow-black/20"
-              >
-                <svg className="h-4 w-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                </svg>
-                Export Report
-              </button>
             </div>
           </div>
         </div>
@@ -640,6 +634,64 @@ export default function InsightsDashboard() {
           </div>
         </section>
 
+        <section className="sticky top-[66px] z-10 rounded-2xl border border-gray-200 bg-white/95 px-3 py-2 shadow-sm backdrop-blur dark:border-gray-800 dark:bg-gray-900/90">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setExportDialogOpen(true)}
+              disabled={anyLoading}
+              className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
+            >
+              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+              </svg>
+              Export Report
+            </button>
+
+            <div className="inline-flex min-w-[170px] items-center rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs text-gray-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400">
+              Date Range (Coming soon)
+            </div>
+
+            <select
+              value={selectedCountry}
+              onChange={(e) => setSelectedCountry(e.target.value)}
+              className="min-w-[150px] rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs text-gray-700 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:focus:border-blue-500 dark:focus:ring-blue-900/40"
+            >
+              <option value="">All Countries</option>
+              {countryOptions.map((country) => (
+                <option key={country} value={country}>
+                  {country}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={selectedDepartment}
+              onChange={(e) => setSelectedDepartment(e.target.value)}
+              className="min-w-[170px] rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs text-gray-700 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:focus:border-blue-500 dark:focus:ring-blue-900/40"
+            >
+              <option value="">All Departments</option>
+              {departmentOptions.map((department) => (
+                <option key={department} value={department}>
+                  {department}
+                </option>
+              ))}
+            </select>
+
+            <button
+              type="button"
+              onClick={() => setRefreshTick((v) => v + 1)}
+              disabled={anyLoading}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
+            >
+              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992V4.356m-1.176 13.86A9 9 0 0 1 6.343 6.343M3 3v5h5" />
+              </svg>
+              Refresh
+            </button>
+          </div>
+        </section>
+
         {activeTab === "overview" && (
           <section id="insights-panel-overview" role="tabpanel" aria-labelledby="insights-tab-overview" className="space-y-4">
             <SectionLabel>Overview</SectionLabel>
@@ -661,7 +713,7 @@ export default function InsightsDashboard() {
                   <BarChartCard title="Average Salary by Country" subtitle="One bar per country · darker bar = above overall average" data={countrySalaries.map(r => ({ country: r.country, avg: r.avgSalary }))} xKey="country" yKey="avg" color="#93c5fd" highlightColor="#2563eb" referenceValue={summary?.avgSalary} referenceLabel="Overall Avg" formatValue={fmt} loading={countryLoading || summaryLoading} height={300} />
                 )}
                 {!departmentError && (
-                  <BarChartCard title="Average Salary by Department" subtitle="One bar per department" data={departmentSalaries.map(r => ({ department: r.department, avg: r.avgSalary }))} xKey="department" yKey="avg" color="#60a5fa" highlightColor="#1d4ed8" referenceValue={summary?.avgSalary} referenceLabel="Overall Avg" formatValue={fmt} loading={departmentLoading || summaryLoading} height={300} />
+                  <BarChartCard title="Average Salary by Department" subtitle="One bar per department" data={filteredDepartmentSalaries.map(r => ({ department: r.department, avg: r.avgSalary }))} xKey="department" yKey="avg" color="#60a5fa" highlightColor="#1d4ed8" referenceValue={summary?.avgSalary} referenceLabel="Overall Avg" formatValue={fmt} loading={departmentLoading || summaryLoading} height={300} />
                 )}
               </div>
             </div>
@@ -708,7 +760,7 @@ export default function InsightsDashboard() {
                   <MetricCard iconBg="bg-cyan-50" accentColor="bg-cyan-500" icon={<svg className="h-5 w-5 text-cyan-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 3v18h18M7 14.25 10.5 10l3 2.25 4.5-6" /></svg>} label="Average Salary by Department" description="Mean of department average salaries" value={departmentLoading ? "—" : fmt(departmentAverageAcrossGroups)} loading={departmentLoading} />
                   <MetricCard iconBg="bg-rose-50" accentColor="bg-rose-500" icon={<svg className="h-5 w-5 text-rose-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m3 17 6-6 4 4 8-8" /></svg>} label="Highest Paying Department" description="Department with top average salary" value={departmentLoading ? "—" : highestPayingDepartment?.department ?? "—"} loading={departmentLoading} />
                 </div>
-                <BarChartCard title="Average Salary by Department" subtitle="One bar per department" data={departmentSalaries.map(r => ({ department: r.department, avg: r.avgSalary }))} xKey="department" yKey="avg" color="#60a5fa" highlightColor="#1d4ed8" referenceValue={summary?.avgSalary} referenceLabel="Overall Avg" formatValue={fmt} loading={departmentLoading || summaryLoading} height={300} />
+                <BarChartCard title="Average Salary by Department" subtitle="One bar per department" data={filteredDepartmentSalaries.map(r => ({ department: r.department, avg: r.avgSalary }))} xKey="department" yKey="avg" color="#60a5fa" highlightColor="#1d4ed8" referenceValue={summary?.avgSalary} referenceLabel="Overall Avg" formatValue={fmt} loading={departmentLoading || summaryLoading} height={300} />
                 <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-200 hover:shadow-md dark:border-gray-800 dark:bg-gray-900 dark:shadow-black/20 dark:hover:shadow-black/30">
                   <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5 dark:border-gray-800">
                     <div><h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">Department Salary Overview</h2><p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">Headcount and average compensation by department</p></div>
@@ -716,7 +768,7 @@ export default function InsightsDashboard() {
                   <div className="overflow-x-auto px-2">
                     <table className="w-full min-w-[680px] text-sm">
                       <thead><tr className="border-b border-gray-100 bg-gray-50/60 dark:border-gray-800 dark:bg-gray-900/70"><th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Department</th><th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Headcount</th><th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Avg Salary</th><th className="px-4 py-3 pl-6 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Relative</th></tr></thead>
-                      <tbody>{departmentLoading ? <RowSkeleton cols={4} /> : departmentSalaries.length === 0 ? <EmptyTableState message="No department analytics available." /> : departmentSalaries.map((row, i) => (<tr key={row.department} className={`border-b border-gray-100 transition-colors duration-150 last:border-0 hover:bg-indigo-50/30 dark:border-gray-800 dark:hover:bg-indigo-950/20 ${i % 2 === 0 ? "bg-white dark:bg-gray-900" : "bg-gray-50/30 dark:bg-gray-900/70"}`}><td className="px-4 py-4 font-semibold text-gray-900 dark:text-gray-100">{row.department}</td><td className="px-4 py-4 text-right tabular-nums text-gray-700 dark:text-gray-300">{row.headcount.toLocaleString()}</td><td className="px-4 py-4 text-right font-bold tabular-nums text-indigo-700 dark:text-indigo-300">{fmt(row.avgSalary)}</td><td className="px-4 py-4 pl-6"><SalaryBar value={row.avgSalary} max={maxDepartmentAvg} color="bg-indigo-500" /></td></tr>))}</tbody>
+                      <tbody>{departmentLoading ? <RowSkeleton cols={4} /> : filteredDepartmentSalaries.length === 0 ? <EmptyTableState message="No department analytics available." /> : filteredDepartmentSalaries.map((row, i) => (<tr key={row.department} className={`border-b border-gray-100 transition-colors duration-150 last:border-0 hover:bg-indigo-50/30 dark:border-gray-800 dark:hover:bg-indigo-950/20 ${i % 2 === 0 ? "bg-white dark:bg-gray-900" : "bg-gray-50/30 dark:bg-gray-900/70"}`}><td className="px-4 py-4 font-semibold text-gray-900 dark:text-gray-100">{row.department}</td><td className="px-4 py-4 text-right tabular-nums text-gray-700 dark:text-gray-300">{row.headcount.toLocaleString()}</td><td className="px-4 py-4 text-right font-bold tabular-nums text-indigo-700 dark:text-indigo-300">{fmt(row.avgSalary)}</td><td className="px-4 py-4 pl-6"><SalaryBar value={row.avgSalary} max={maxDepartmentAvg} color="bg-indigo-500" /></td></tr>))}</tbody>
                     </table>
                   </div>
                 </div>
