@@ -619,7 +619,6 @@ export default function InsightsDashboard() {
                     : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
                 }`}
               >
-                <span className="mr-1.5 text-[11px] opacity-70">{index + 1}.</span>
                 {tab.label}
               </button>
             ))}
