@@ -3,6 +3,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import dynamic from "next/dynamic";
+import MetricCard from "@/features/analytics/components/MetricCard";
+import PageHeader from "@/shared/components/PageHeader";
+import TableToolbar from "@/shared/components/TableToolbar";
 import type {
   CountrySalaryStats,
   DepartmentSalaryStats,
@@ -72,91 +75,6 @@ function Toast({
           <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
-    </div>
-  );
-}
-
-// ─── Metric card ─────────────────────────────────────────────────────────────
-
-function MetricCard({
-  icon,
-  iconBg,
-  accentColor,
-  label,
-  description,
-  value,
-  loading,
-  compact = false,
-  trend,
-  trendTone = "neutral"
-}: {
-  icon: React.ReactNode;
-  iconBg: string;
-  accentColor: string;
-  label: string;
-  description: string;
-  value: string;
-  loading: boolean;
-  compact?: boolean;
-  trend?: string;
-  trendTone?: "up" | "down" | "neutral";
-}) {
-  const trendClasses =
-    trendTone === "up"
-      ? "text-emerald-700 bg-emerald-50 dark:text-emerald-300 dark:bg-emerald-950/30"
-      : trendTone === "down"
-        ? "text-red-700 bg-red-50 dark:text-red-300 dark:bg-red-950/30"
-        : "text-gray-600 bg-gray-100 dark:text-gray-300 dark:bg-gray-800";
-
-  return (
-    <div
-      className={`group relative overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900 dark:shadow-black/20 dark:hover:shadow-black/30 ${
-        compact ? "p-3.5" : "p-6"
-      }`}
-    >
-      {/* Colored left accent bar */}
-      <div className={`absolute inset-y-0 left-0 w-1 rounded-l-2xl ${accentColor}`} />
-
-      <div className="pl-2">
-        <div className={`${compact ? "mb-2" : "mb-4"} flex items-center justify-between`}>
-          <div
-            className={`inline-flex items-center justify-center rounded-xl ${iconBg} transition-transform duration-200 group-hover:scale-110 ${
-              compact ? "h-7 w-7" : "h-10 w-10"
-            }`}
-          >
-            {icon}
-          </div>
-          {trend && (
-            <span
-              className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${trendClasses}`}
-            >
-              {trend}
-            </span>
-          )}
-        </div>
-
-        <p className="text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">
-          {label}
-        </p>
-
-        {loading ? (
-          <div className={`${compact ? "mt-1.5" : "mt-2"} space-y-2`}>
-            <div className={`${compact ? "h-6 w-24" : "h-9 w-32"} animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800`} />
-            <div className="h-3 w-24 animate-pulse rounded bg-gray-100 dark:bg-gray-800" />
-          </div>
-        ) : (
-          <>
-            <p
-              className={`mt-1 font-extrabold tabular-nums tracking-tight text-gray-900 dark:text-gray-100 ${
-                compact ? "text-xl" : "text-3xl"
-              }`}
-            >
-              {value}
-            </p>
-            <p className={`${compact ? "mt-1" : "mt-1.5"} text-xs text-gray-500 dark:text-gray-400`}>{description}</p>
-          </>
-        )}
-      </div>
     </div>
   );
 }
@@ -580,29 +498,16 @@ export default function InsightsDashboard() {
         onExport={handleExport}
       />
 
-      {/* ── Page Header ── */}
-      <header className="border-b border-gray-200 bg-white/95 backdrop-blur transition-colors duration-300 dark:border-gray-800 dark:bg-gray-950/90">
-        <div className="mx-auto max-w-[1500px] px-4 py-4 sm:px-6">
-          <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
-                Salary Insights
-              </h1>
-              <p className="mt-0.5 text-xs text-gray-600 dark:text-gray-400 sm:text-sm">
-                Understand workforce compensation trends across countries and roles
-              </p>
-            </div>
-
-            <div className="flex w-full shrink-0 items-center gap-3 sm:w-auto">
-              {/* Live data badge */}
-              <span className="hidden items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 sm:inline-flex dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                Live Data
-              </span>
-            </div>
-          </div>
-        </div>
-      </header>
+      <PageHeader
+        title="Salary Insights"
+        description="Understand workforce compensation trends across countries and roles"
+        actions={
+          <span className="hidden items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 sm:inline-flex dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            Live Data
+          </span>
+        }
+      />
 
       <main className="mx-auto max-w-[1500px] space-y-5 px-4 py-6 pb-12 sm:px-6 sm:py-8">
         <section className="sticky top-2 z-20 rounded-2xl border border-gray-200 bg-white/95 p-1 shadow-sm backdrop-blur dark:border-gray-800 dark:bg-gray-900/90">
@@ -634,8 +539,7 @@ export default function InsightsDashboard() {
           </div>
         </section>
 
-        <section className="sticky top-[66px] z-10 rounded-2xl border border-gray-200 bg-white/95 px-3 py-2 shadow-sm backdrop-blur dark:border-gray-800 dark:bg-gray-900/90">
-          <div className="flex flex-wrap items-center gap-2">
+        <TableToolbar stickyTopClass="sticky top-[66px]">
             <button
               type="button"
               onClick={() => setExportDialogOpen(true)}
@@ -689,8 +593,7 @@ export default function InsightsDashboard() {
               </svg>
               Refresh
             </button>
-          </div>
-        </section>
+        </TableToolbar>
 
         {activeTab === "overview" && (
           <section id="insights-panel-overview" role="tabpanel" aria-labelledby="insights-tab-overview" className="space-y-4">

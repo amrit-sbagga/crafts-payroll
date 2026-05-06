@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import SettingsMenu from "@/components/theme/SettingsMenu";
+import ThemeMenu from "@/shared/components/theme/ThemeMenu";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -34,7 +34,7 @@ export default function RootLayout({
               Salary Insights
             </Link>
             <div className="ml-auto">
-              <SettingsMenu />
+              <ThemeMenu />
             </div>
           </div>
         </nav>
