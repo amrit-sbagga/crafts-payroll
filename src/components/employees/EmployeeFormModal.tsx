@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { Employee } from "@/types/employee";
 
 type Props = {
@@ -24,6 +24,7 @@ export default function EmployeeFormModal({
   onSuccess
 }: Props) {
   const isEditing = employee !== null;
+  const firstInputRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState<FormState>({
     fullName: employee?.fullName ?? "",
@@ -34,6 +35,20 @@ export default function EmployeeFormModal({
 
   const [errors, setErrors] = useState<FieldErrors>({});
   const [submitting, setSubmitting] = useState(false);
+
+  // Auto-focus first field on open
+  useEffect(() => {
+    firstInputRef.current?.focus();
+  }, []);
+
+  // Close on Escape key
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target;
@@ -46,9 +61,7 @@ export default function EmployeeFormModal({
     setSubmitting(true);
     setErrors({});
 
-    const url = isEditing
-      ? `/api/employees/${employee.id}`
-      : "/api/employees";
+    const url = isEditing ? `/api/employees/${employee.id}` : "/api/employees";
 
     const res = await fetch(url, {
       method: isEditing ? "PUT" : "POST",
@@ -62,70 +75,131 @@ export default function EmployeeFormModal({
     }
 
     const json = await res.json();
-    if (json.fields) {
-      setErrors(json.fields);
-    }
+    if (json.fields) setErrors(json.fields);
     setSubmitting(false);
   }
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl"
+        className="w-full max-w-lg rounded-2xl bg-white shadow-2xl"
         onClick={e => e.stopPropagation()}
       >
-        <h2 className="mb-5 text-lg font-semibold text-gray-800">
-          {isEditing ? "Edit Employee" : "Add Employee"}
-        </h2>
+        {/* ── Modal header ── */}
+        <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50">
+              {isEditing ? (
+                <svg className="h-4.5 w-4.5 h-5 w-5 text-blue-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" />
+                </svg>
+              ) : (
+                <svg className="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
+                </svg>
+              )}
+            </div>
+            <div>
+              <h2 className="text-base font-semibold text-gray-900">
+                {isEditing ? "Edit Employee" : "Add New Employee"}
+              </h2>
+              <p className="text-xs text-gray-400">
+                {isEditing
+                  ? "Update employee details below"
+                  : "Fill in the details to create a new record"}
+              </p>
+            </div>
+          </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Field
-            label="Full Name"
-            name="fullName"
-            value={form.fullName}
-            error={errors.fullName}
-            onChange={handleChange}
-          />
-          <Field
-            label="Job Title"
-            name="jobTitle"
-            value={form.jobTitle}
-            error={errors.jobTitle}
-            onChange={handleChange}
-          />
-          <Field
-            label="Country"
-            name="country"
-            value={form.country}
-            error={errors.country}
-            onChange={handleChange}
-          />
-          <Field
-            label="Salary"
-            name="salary"
-            type="number"
-            value={form.salary}
-            error={errors.salary}
-            onChange={handleChange}
-          />
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+          >
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
 
-          <div className="flex justify-end gap-3 pt-2">
+        {/* ── Form ── */}
+        <form onSubmit={handleSubmit}>
+          <div className="space-y-5 px-6 py-5">
+
+            {/* Full Name — full width */}
+            <Field
+              ref={firstInputRef}
+              label="Full Name"
+              name="fullName"
+              placeholder="e.g. Ada Lovelace"
+              value={form.fullName}
+              error={errors.fullName}
+              onChange={handleChange}
+            />
+
+            {/* Job Title + Country — side by side */}
+            <div className="grid grid-cols-2 gap-4">
+              <Field
+                label="Job Title"
+                name="jobTitle"
+                placeholder="e.g. Engineer"
+                value={form.jobTitle}
+                error={errors.jobTitle}
+                onChange={handleChange}
+              />
+              <Field
+                label="Country"
+                name="country"
+                placeholder="e.g. India"
+                value={form.country}
+                error={errors.country}
+                onChange={handleChange}
+              />
+            </div>
+
+            {/* Salary — full width */}
+            <Field
+              label="Salary"
+              name="salary"
+              type="number"
+              placeholder="e.g. 800000"
+              value={form.salary}
+              error={errors.salary}
+              onChange={handleChange}
+              hint="Enter the annual gross salary"
+            />
+          </div>
+
+          {/* ── Footer ── */}
+          <div className="flex items-center justify-end gap-3 border-t border-gray-100 px-6 py-4">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+              className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+              className="flex min-w-[130px] items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 active:bg-blue-800 disabled:opacity-60 transition-colors"
             >
-              {submitting ? "Saving…" : isEditing ? "Save Changes" : "Add Employee"}
+              {submitting ? (
+                <>
+                  <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Saving…
+                </>
+              ) : isEditing ? (
+                "Save Changes"
+              ) : (
+                "Create Employee"
+              )}
             </button>
           </div>
         </form>
@@ -134,40 +208,58 @@ export default function EmployeeFormModal({
   );
 }
 
-function Field({
+// ─── Field component ──────────────────────────────────────────────────────────
+
+const Field = function Field({
   label,
   name,
   type = "text",
+  placeholder,
   value,
   error,
-  onChange
+  hint,
+  onChange,
+  ref
 }: {
   label: string;
   name: string;
   type?: string;
+  placeholder?: string;
   value: string;
   error?: string;
+  hint?: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  ref?: React.Ref<HTMLInputElement>;
 }) {
   return (
     <div>
-      <label className="mb-1 block text-sm font-medium text-gray-700">
+      <label className="mb-1.5 block text-sm font-medium text-gray-700">
         {label}
       </label>
       <input
+        ref={ref}
         type={type}
         name={name}
         value={value}
+        placeholder={placeholder}
         onChange={onChange}
-        className={`w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 ${
-          error ? "border-red-400" : "border-gray-300"
+        className={`w-full rounded-lg border bg-gray-50 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:bg-white focus:ring-2 ${
+          error
+            ? "border-red-300 focus:border-red-400 focus:ring-red-100"
+            : "border-gray-200 focus:border-blue-400 focus:ring-blue-100"
         }`}
       />
+      {hint && !error && (
+        <p className="mt-1 text-xs text-gray-400">{hint}</p>
+      )}
       {error && (
-        <p className="mt-1 text-xs text-red-500 capitalize">
+        <p className="mt-1 flex items-center gap-1 text-xs text-red-500">
+          <svg className="h-3.5 w-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5A.75.75 0 0 1 10 5Zm0 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clipRule="evenodd" />
+          </svg>
           {error.replace(/_/g, " ")}
         </p>
       )}
     </div>
   );
-}
+};
