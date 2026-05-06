@@ -1,6 +1,6 @@
-# Payroll Analytics Dashboard
+# Salary Management
 
-Modern full-stack salary management platform for HR and payroll visibility.  
+Modern full-stack salary management platform for HR and salary/payroll visibility.  
 Includes employee lifecycle management, profile views, analytics dashboards, reporting, theming, and high-volume seed support.
 
 ## 1. Features
