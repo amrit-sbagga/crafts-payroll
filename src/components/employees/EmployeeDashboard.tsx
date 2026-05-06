@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { Employee, EmployeeMeta } from "@/types/employee";
 import EmployeeFormModal from "./EmployeeFormModal";
 
@@ -46,12 +46,26 @@ function DeleteConfirmModal({
   onConfirm: () => void;
   onCancel: () => void;
 }) {
+  const cancelButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    cancelButtonRef.current?.focus();
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") onCancel();
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [onCancel]);
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
       onClick={onCancel}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="delete-employee-title"
         className="w-full max-w-sm rounded-lg border border-gray-200 bg-white p-6 shadow-xl dark:border-gray-800 dark:bg-gray-900"
         onClick={e => e.stopPropagation()}
       >
@@ -60,7 +74,7 @@ function DeleteConfirmModal({
             ✕
           </span>
           <div>
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Delete Employee</h3>
+            <h3 id="delete-employee-title" className="font-semibold text-gray-900 dark:text-gray-100">Delete Employee</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400">This action cannot be undone.</p>
           </div>
         </div>
@@ -70,14 +84,15 @@ function DeleteConfirmModal({
         </p>
         <div className="flex justify-end gap-3">
           <button
+            ref={cancelButtonRef}
             onClick={onCancel}
-            className="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-600 transition-all hover:bg-gray-50 active:scale-95 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+            className="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-600 transition-all hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 active:scale-95 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
-            className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-red-700 active:scale-95"
+            className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 active:scale-95"
           >
             Delete
           </button>
@@ -91,6 +106,7 @@ function RunPayrollModal({
   month,
   year,
   submitting,
+  errorMessage,
   onMonthChange,
   onYearChange,
   onRun,
@@ -99,22 +115,42 @@ function RunPayrollModal({
   month: number;
   year: number;
   submitting: boolean;
+  errorMessage: string | null;
   onMonthChange: (month: number) => void;
   onYearChange: (year: number) => void;
   onRun: () => void;
   onClose: () => void;
 }) {
+  const runButtonRef = useRef<HTMLButtonElement>(null);
   const years = Array.from({ length: 11 }, (_, i) => new Date().getFullYear() - 5 + i);
+
+  useEffect(() => {
+    runButtonRef.current?.focus();
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [onClose]);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" onClick={onClose}>
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="run-payroll-title"
         className="w-full max-w-md rounded-xl border border-gray-200 bg-white p-6 shadow-xl dark:border-gray-800 dark:bg-gray-900"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Run Monthly Payroll</h3>
+        <h3 id="run-payroll-title" className="text-lg font-semibold text-gray-900 dark:text-gray-100">Run Monthly Payroll</h3>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           Select payroll period to generate payout summary.
         </p>
+        {errorMessage && (
+          <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">
+            {errorMessage}
+          </p>
+        )}
         <div className="mt-5 grid grid-cols-2 gap-3">
           <div>
             <label className="mb-1.5 block text-xs font-medium text-gray-600 dark:text-gray-300">Month</label>
@@ -149,15 +185,16 @@ function RunPayrollModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-600 transition-all hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+            className="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-600 transition-all hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
           >
             Cancel
           </button>
           <button
+            ref={runButtonRef}
             type="button"
             onClick={onRun}
             disabled={submitting}
-            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-blue-700 disabled:opacity-60"
+            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 disabled:opacity-60"
           >
             {submitting ? "Running..." : "Run Payroll"}
           </button>
@@ -174,9 +211,23 @@ function PayrollReportModal({
   report: PayrollReport;
   onClose: () => void;
 }) {
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    closeButtonRef.current?.focus();
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [onClose]);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" onClick={onClose}>
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="payroll-complete-title"
         className="w-full max-w-lg rounded-xl border border-gray-200 bg-white p-6 shadow-xl dark:border-gray-800 dark:bg-gray-900"
         onClick={(e) => e.stopPropagation()}
       >
@@ -185,7 +236,7 @@ function PayrollReportModal({
             ✓
           </span>
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Payroll Run Complete</h3>
+            <h3 id="payroll-complete-title" className="text-lg font-semibold text-gray-900 dark:text-gray-100">Payroll Run Complete</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               {MONTH_NAMES[report.month - 1]} {report.year}
             </p>
@@ -213,9 +264,10 @@ function PayrollReportModal({
 
         <div className="mt-5 flex justify-end">
           <button
+            ref={closeButtonRef}
             type="button"
             onClick={onClose}
-            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-blue-700"
+            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
           >
             Close
           </button>
@@ -320,7 +372,7 @@ function Pagination({
   const to = Math.min(page * limit, total);
 
   return (
-    <div className="mt-4 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300">
+    <div className="mt-4 flex flex-col gap-3 text-sm text-gray-600 sm:flex-row sm:items-center sm:justify-between dark:text-gray-300">
       <span className="text-xs text-gray-500 dark:text-gray-400">
         Showing <span className="font-medium text-gray-700 dark:text-gray-200">{from}–{to}</span> of{" "}
         <span className="font-medium text-gray-700 dark:text-gray-200">{total.toLocaleString()}</span>{" "}
@@ -360,6 +412,7 @@ export default function EmployeeDashboard() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [meta, setMeta] = useState<EmployeeMeta>(DEFAULT_META);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const [search, setSearch] = useState("");
   const [country, setCountry] = useState("");
@@ -374,6 +427,7 @@ export default function EmployeeDashboard() {
   const [payrollReport, setPayrollReport] = useState<PayrollReport | null>(null);
   const [payrollMonth, setPayrollMonth] = useState(new Date().getMonth() + 1);
   const [payrollYear, setPayrollYear] = useState(new Date().getFullYear());
+  const [payrollError, setPayrollError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
   function refresh() {
@@ -383,6 +437,7 @@ export default function EmployeeDashboard() {
   useEffect(() => {
     const controller = new AbortController();
     setLoading(true);
+    setLoadError(null);
 
     const params = new URLSearchParams({ page: String(page), limit: "20" });
     if (search) params.set("search", search);
@@ -390,13 +445,22 @@ export default function EmployeeDashboard() {
     if (jobTitle) params.set("jobTitle", jobTitle);
 
     fetch(`/api/employees?${params}`, { signal: controller.signal })
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error("Failed to load employees");
+        return r.json();
+      })
       .then(json => {
         setEmployees(json.data ?? []);
         setMeta(json.meta ?? DEFAULT_META);
-        setLoading(false);
       })
-      .catch(() => {});
+      .catch(() => {
+        if (!controller.signal.aborted) {
+          setLoadError("Failed to load employees. Please retry.");
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
 
     return () => controller.abort();
   }, [search, country, jobTitle, page, refreshKey]);
@@ -429,6 +493,7 @@ export default function EmployeeDashboard() {
 
   async function handleRunPayroll() {
     setPayrollSubmitting(true);
+    setPayrollError(null);
     try {
       const res = await fetch("/api/payroll/run", {
         method: "POST",
@@ -440,7 +505,7 @@ export default function EmployeeDashboard() {
       setPayrollModalOpen(false);
       setPayrollReport(json.data);
     } catch {
-      // Keep UX simple for now; modal remains open and user can retry.
+      setPayrollError("Could not complete payroll run. Please try again.");
     } finally {
       setPayrollSubmitting(false);
     }
@@ -461,7 +526,7 @@ export default function EmployeeDashboard() {
     <div className="min-h-screen bg-gray-50 transition-colors duration-300 dark:bg-gray-950">
       {/* ── Page header ── */}
       <header className="border-b border-gray-200 bg-white transition-colors duration-300 dark:border-gray-800 dark:bg-gray-950">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
+        <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-4 px-4 py-5 sm:flex-row sm:items-center sm:px-6">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
               Employees
@@ -470,10 +535,13 @@ export default function EmployeeDashboard() {
               Manage your workforce efficiently
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex w-full flex-col items-stretch gap-2 sm:w-auto sm:flex-row sm:items-center">
             <button
-              onClick={() => setPayrollModalOpen(true)}
-              className="flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-2.5 text-sm font-semibold text-indigo-700 shadow-sm transition-all duration-150 hover:bg-indigo-100 dark:border-indigo-900/60 dark:bg-indigo-950/40 dark:text-indigo-300 dark:hover:bg-indigo-950/60"
+              onClick={() => {
+                setPayrollError(null);
+                setPayrollModalOpen(true);
+              }}
+              className="flex items-center justify-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-2.5 text-sm font-semibold text-indigo-700 shadow-sm transition-all duration-150 hover:bg-indigo-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 dark:border-indigo-900/60 dark:bg-indigo-950/40 dark:text-indigo-300 dark:hover:bg-indigo-950/60"
             >
               <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m6-6H6" />
@@ -482,7 +550,7 @@ export default function EmployeeDashboard() {
             </button>
             <button
               onClick={() => { setEditingEmployee(null); setModalOpen(true); }}
-              className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-blue-700 active:scale-95 active:bg-blue-800"
+              className="flex items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 active:scale-95 active:bg-blue-800"
             >
               <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -493,7 +561,7 @@ export default function EmployeeDashboard() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-6 py-8 space-y-6">
+      <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 sm:py-8">
 
         {/* ── Stats summary row ── */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -506,6 +574,7 @@ export default function EmployeeDashboard() {
             iconBg="bg-blue-50"
             label="Total Employees"
             value={loading ? "—" : meta.total.toLocaleString()}
+            loading={loading}
           />
           <StatCard
             icon={
@@ -516,6 +585,7 @@ export default function EmployeeDashboard() {
             iconBg="bg-emerald-50"
             label="Avg Salary (this page)"
             value={loading ? "—" : avgSalary.toLocaleString()}
+            loading={loading}
           />
           <StatCard
             icon={
@@ -526,8 +596,22 @@ export default function EmployeeDashboard() {
             iconBg="bg-violet-50"
             label="Countries (this page)"
             value={loading ? "—" : String(countriesOnPage)}
+            loading={loading}
           />
         </div>
+
+        {loadError && (
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">
+            <span>{loadError}</span>
+            <button
+              type="button"
+              onClick={refresh}
+              className="rounded-md border border-red-300 px-3 py-1.5 text-xs font-semibold transition hover:bg-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 dark:border-red-800 dark:hover:bg-red-950/40"
+            >
+              Retry
+            </button>
+          </div>
+        )}
 
         {/* ── Filter card ── */}
         <div className="rounded-xl border border-gray-200 bg-white px-5 py-4 shadow-sm transition-colors duration-300 dark:border-gray-800 dark:bg-gray-900">
@@ -570,7 +654,8 @@ export default function EmployeeDashboard() {
             )}
           </div>
 
-          <table className="min-w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="min-w-[900px] w-full text-sm">
             <thead className="sticky top-0 z-10">
               <tr className="border-b border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-900">
                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
@@ -673,6 +758,7 @@ export default function EmployeeDashboard() {
               )}
             </tbody>
           </table>
+          </div>
 
           {/* Pagination inside card footer */}
           <div className="border-t border-gray-100 px-5 py-3 dark:border-gray-800">
@@ -703,10 +789,14 @@ export default function EmployeeDashboard() {
           month={payrollMonth}
           year={payrollYear}
           submitting={payrollSubmitting}
+          errorMessage={payrollError}
           onMonthChange={setPayrollMonth}
           onYearChange={setPayrollYear}
           onRun={handleRunPayroll}
-          onClose={() => setPayrollModalOpen(false)}
+          onClose={() => {
+            setPayrollModalOpen(false);
+            setPayrollError(null);
+          }}
         />
       )}
 
@@ -726,12 +816,14 @@ function StatCard({
   icon,
   iconBg,
   label,
-  value
+  value,
+  loading
 }: {
   icon: React.ReactNode;
   iconBg: string;
   label: string;
   value: string;
+  loading: boolean;
 }) {
   return (
     <div className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white px-5 py-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-gray-800 dark:bg-gray-900">
@@ -740,7 +832,11 @@ function StatCard({
       </div>
       <div>
         <p className="text-xs font-medium text-gray-400 dark:text-gray-500">{label}</p>
-        <p className="mt-0.5 text-xl font-bold tabular-nums text-gray-900 dark:text-gray-100">{value}</p>
+        {loading ? (
+          <div className="mt-1 h-7 w-24 animate-pulse rounded bg-gray-100 dark:bg-gray-800" />
+        ) : (
+          <p className="mt-0.5 text-xl font-bold tabular-nums text-gray-900 dark:text-gray-100">{value}</p>
+        )}
       </div>
     </div>
   );

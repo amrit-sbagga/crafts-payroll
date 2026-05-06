@@ -46,6 +46,7 @@ export default function EmployeeFormModal({
 
   const [errors, setErrors] = useState<FieldErrors>({});
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Auto-focus first field on open
   useEffect(() => {
@@ -71,23 +72,33 @@ export default function EmployeeFormModal({
     e.preventDefault();
     setSubmitting(true);
     setErrors({});
+    setSubmitError(null);
 
     const url = isEditing ? `/api/employees/${employee.id}` : "/api/employees";
 
-    const res = await fetch(url, {
-      method: isEditing ? "PUT" : "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, salary: Number(form.salary) })
-    });
+    try {
+      const res = await fetch(url, {
+        method: isEditing ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, salary: Number(form.salary) })
+      });
 
-    if (res.ok) {
-      onSuccess();
-      return;
+      if (res.ok) {
+        onSuccess();
+        return;
+      }
+
+      const json = await res.json();
+      if (json.fields) {
+        setErrors(json.fields);
+      } else {
+        setSubmitError("Unable to save employee. Please review details and try again.");
+      }
+    } catch {
+      setSubmitError("Network error while saving. Please try again.");
+    } finally {
+      setSubmitting(false);
     }
-
-    const json = await res.json();
-    if (json.fields) setErrors(json.fields);
-    setSubmitting(false);
   }
 
   return (
@@ -96,6 +107,9 @@ export default function EmployeeFormModal({
       onClick={onClose}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="employee-form-title"
         className="w-full max-w-lg rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-900"
         onClick={e => e.stopPropagation()}
       >
@@ -114,7 +128,7 @@ export default function EmployeeFormModal({
               )}
             </div>
             <div>
-              <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+              <h2 id="employee-form-title" className="text-base font-semibold text-gray-900 dark:text-gray-100">
                 {isEditing ? "Edit Employee" : "Add New Employee"}
               </h2>
               <p className="text-xs text-gray-400 dark:text-gray-500">
@@ -128,7 +142,7 @@ export default function EmployeeFormModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+              className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-300"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -139,6 +153,11 @@ export default function EmployeeFormModal({
         {/* ── Form ── */}
         <form onSubmit={handleSubmit}>
           <div className="space-y-5 px-6 py-5">
+            {submitError && (
+              <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">
+                {submitError}
+              </div>
+            )}
 
             {/* Full Name — full width */}
             <Field
@@ -196,14 +215,14 @@ export default function EmployeeFormModal({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+              className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="flex min-w-[130px] items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 active:bg-blue-800 disabled:opacity-60 transition-colors"
+              className="flex min-w-[130px] items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 active:bg-blue-800 disabled:opacity-60"
             >
               {submitting ? (
                 <>

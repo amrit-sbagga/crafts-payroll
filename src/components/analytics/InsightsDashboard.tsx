@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import type {
   CountrySalaryStats,
   DepartmentSalaryStats,
@@ -239,6 +239,18 @@ function ExportDialog({
   onCancel: () => void;
   onExport: () => void;
 }) {
+  const exportButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    exportButtonRef.current?.focus();
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") onCancel();
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [open, onCancel]);
+
   if (!open) return null;
   const nothingSelected =
     scope === "custom" &&
@@ -247,10 +259,16 @@ function ExportDialog({
     !selection.includeJobStats;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-lg rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-900">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" onClick={onCancel}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="export-report-title"
+        className="w-full max-w-lg rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-900"
+        onClick={(event) => event.stopPropagation()}
+      >
         <div className="border-b border-gray-100 px-6 py-4 dark:border-gray-800">
-          <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">Export Report</h3>
+          <h3 id="export-report-title" className="text-base font-semibold text-gray-900 dark:text-gray-100">Export Report</h3>
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
             Choose file format and what data to include.
           </p>
@@ -339,10 +357,11 @@ function ExportDialog({
             Cancel
           </button>
           <button
+            ref={exportButtonRef}
             type="button"
             onClick={onExport}
             disabled={loading || nothingSelected}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? "Exporting..." : "Export"}
           </button>
@@ -500,8 +519,8 @@ export default function InsightsDashboard() {
 
       {/* ── Page Header ── */}
       <header className="border-b border-gray-200 bg-white/95 backdrop-blur transition-colors duration-300 dark:border-gray-800 dark:bg-gray-950/90">
-        <div className="mx-auto max-w-7xl px-6 py-7">
-          <div className="flex items-center justify-between gap-4">
+        <div className="mx-auto max-w-7xl px-4 py-7 sm:px-6">
+          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
             <div>
               <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-gray-100">
                 Salary Insights
@@ -511,7 +530,7 @@ export default function InsightsDashboard() {
               </p>
             </div>
 
-            <div className="flex shrink-0 items-center gap-3">
+            <div className="flex w-full shrink-0 items-center gap-3 sm:w-auto">
               {/* Live data badge */}
               <span className="hidden items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 sm:inline-flex dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
@@ -522,7 +541,7 @@ export default function InsightsDashboard() {
               <button
                 onClick={() => setExportDialogOpen(true)}
                 disabled={anyLoading}
-                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition-all duration-200 hover:border-gray-300 hover:bg-gray-50 hover:shadow-md active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:border-gray-600 dark:hover:bg-gray-800 dark:hover:shadow-black/20"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition-all duration-200 hover:border-gray-300 hover:bg-gray-50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:border-gray-600 dark:hover:bg-gray-800 dark:hover:shadow-black/20"
               >
                 <svg className="h-4 w-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
@@ -534,7 +553,7 @@ export default function InsightsDashboard() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl space-y-12 px-6 py-10 pb-16">
+      <main className="mx-auto max-w-7xl space-y-10 px-4 py-8 pb-14 sm:space-y-12 sm:px-6 sm:py-10 sm:pb-16">
 
         {/* ── Section 1: Key Metrics ── */}
         <section className="space-y-4">
@@ -648,13 +667,13 @@ export default function InsightsDashboard() {
             </div>
 
             {/* Table */}
-            <div className="px-2">
+            <div className="overflow-x-auto px-2">
               {countryError ? (
                 <div className="p-6">
                   <ErrorState message="Failed to load country salary data." />
                 </div>
               ) : (
-                <table className="min-w-full text-sm">
+                <table className="w-full min-w-[760px] text-sm">
                   <thead>
                     <tr className="border-b border-gray-100 bg-gray-50/60 dark:border-gray-800 dark:bg-gray-900/70">
                       <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
@@ -808,8 +827,8 @@ export default function InsightsDashboard() {
                     </p>
                   </div>
                 </div>
-                <div className="px-2">
-                  <table className="min-w-full text-sm">
+                <div className="overflow-x-auto px-2">
+                  <table className="w-full min-w-[680px] text-sm">
                     <thead>
                       <tr className="border-b border-gray-100 bg-gray-50/60 dark:border-gray-800 dark:bg-gray-900/70">
                         <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
@@ -918,13 +937,13 @@ export default function InsightsDashboard() {
             </div>
 
             {/* Table */}
-            <div className="px-2">
+            <div className="overflow-x-auto px-2">
               {jobError ? (
                 <div className="p-6">
                   <ErrorState message="Failed to load job title salary data." />
                 </div>
               ) : (
-                <table className="min-w-full text-sm">
+                <table className="w-full min-w-[700px] text-sm">
                   <thead>
                     <tr className="border-b border-gray-100 bg-gray-50/60 dark:border-gray-800 dark:bg-gray-900/70">
                       <th className="w-10 px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
