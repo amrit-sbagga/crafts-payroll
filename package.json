@@ -33,7 +33,8 @@
     "pg": "latest",
     "react": "latest",
     "react-dom": "latest",
-    "recharts": "^3.8.1"
+    "recharts": "^3.8.1",
+    "jspdf": "latest"
   },
   "devDependencies": {
     "@testing-library/dom": "latest",

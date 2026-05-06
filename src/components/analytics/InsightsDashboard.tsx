@@ -7,6 +7,7 @@ import type {
   GlobalSalarySummary
 } from "@/modules/employee/employeeAnalytics.service";
 import { BarChartCard, PieChartCard, SalaryDistributionChart } from "@/components/charts";
+import type { ExportFormat, ExportSelection } from "@/lib/exportReport";
 import { exportReport } from "@/lib/exportReport";
 
 function fmt(value: number): string {
@@ -16,6 +17,7 @@ function fmt(value: number): string {
 // ─── Toast ────────────────────────────────────────────────────────────────────
 
 type ToastType = "success" | "error";
+type ExportScope = "all" | "custom";
 
 function Toast({
   message,
@@ -213,6 +215,142 @@ function ErrorState({ message }: { message: string }) {
   );
 }
 
+function ExportDialog({
+  open,
+  loading,
+  format,
+  scope,
+  selection,
+  onFormatChange,
+  onScopeChange,
+  onSelectionChange,
+  onCancel,
+  onExport,
+}: {
+  open: boolean;
+  loading: boolean;
+  format: ExportFormat;
+  scope: ExportScope;
+  selection: ExportSelection;
+  onFormatChange: (format: ExportFormat) => void;
+  onScopeChange: (scope: ExportScope) => void;
+  onSelectionChange: (next: ExportSelection) => void;
+  onCancel: () => void;
+  onExport: () => void;
+}) {
+  if (!open) return null;
+  const nothingSelected =
+    scope === "custom" &&
+    !selection.includeSummary &&
+    !selection.includeCountryStats &&
+    !selection.includeJobStats;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-lg rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-900">
+        <div className="border-b border-gray-100 px-6 py-4 dark:border-gray-800">
+          <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">Export Report</h3>
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            Choose file format and what data to include.
+          </p>
+        </div>
+
+        <div className="space-y-5 px-6 py-5">
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Format</p>
+            <div className="flex gap-2">
+              {(["csv", "pdf"] as const).map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => onFormatChange(option)}
+                  className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                    format === option
+                      ? "border-blue-500 bg-blue-50 text-blue-700 dark:border-blue-400 dark:bg-blue-950/40 dark:text-blue-300"
+                      : "border-gray-200 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+                  }`}
+                >
+                  {option.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Data scope</p>
+            <div className="space-y-2 text-sm">
+              <label className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
+                <input
+                  type="radio"
+                  name="export-scope"
+                  checked={scope === "all"}
+                  onChange={() => onScopeChange("all")}
+                />
+                Export full report
+              </label>
+              <label className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
+                <input
+                  type="radio"
+                  name="export-scope"
+                  checked={scope === "custom"}
+                  onChange={() => onScopeChange("custom")}
+                />
+                Select sections
+              </label>
+            </div>
+          </div>
+
+          <div className={`space-y-2 rounded-lg border border-gray-200 p-3 dark:border-gray-700 ${scope === "all" ? "opacity-60" : ""}`}>
+            {([
+              { key: "includeSummary", label: "Global summary" },
+              { key: "includeCountryStats", label: "Country salary stats" },
+              { key: "includeJobStats", label: "Job title salary stats" },
+            ] as const).map((item) => (
+              <label key={item.key} className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
+                <input
+                  type="checkbox"
+                  disabled={scope === "all"}
+                  checked={selection[item.key]}
+                  onChange={(e) =>
+                    onSelectionChange({
+                      ...selection,
+                      [item.key]: e.target.checked,
+                    })
+                  }
+                />
+                {item.label}
+              </label>
+            ))}
+          </div>
+          {nothingSelected && (
+            <p className="text-xs text-red-500 dark:text-red-400">
+              Select at least one section to export.
+            </p>
+          )}
+        </div>
+
+        <div className="flex items-center justify-end gap-3 border-t border-gray-100 px-6 py-4 dark:border-gray-800">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onExport}
+            disabled={loading || nothingSelected}
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {loading ? "Exporting..." : "Export"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 
 export default function InsightsDashboard() {
@@ -231,21 +369,44 @@ export default function InsightsDashboard() {
   const [jobError, setJobError] = useState(false);
 
   const [exporting, setExporting] = useState(false);
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [exportFormat, setExportFormat] = useState<ExportFormat>("csv");
+  const [exportScope, setExportScope] = useState<ExportScope>("all");
+  const [exportSelection, setExportSelection] = useState<ExportSelection>({
+    includeSummary: true,
+    includeCountryStats: true,
+    includeJobStats: true,
+  });
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
   const dismissToast = useCallback(() => setToast(null), []);
 
   const handleExport = useCallback(async () => {
+    const selection =
+      exportScope === "all"
+        ? {
+            includeSummary: true,
+            includeCountryStats: true,
+            includeJobStats: true,
+          }
+        : exportSelection;
+
+    if (!selection.includeSummary && !selection.includeCountryStats && !selection.includeJobStats) {
+      setToast({ message: "Select at least one section to export.", type: "error" });
+      return;
+    }
+
     setExporting(true);
     try {
-      exportReport(summary, totalEmployees, countrySalaries, jobSalaries);
+      exportReport(summary, totalEmployees, countrySalaries, jobSalaries, exportFormat, selection);
       setToast({ message: "Report downloaded successfully", type: "success" });
+      setExportDialogOpen(false);
     } catch {
       setToast({ message: "Export failed. Please try again.", type: "error" });
     } finally {
       setExporting(false);
     }
-  }, [summary, totalEmployees, countrySalaries, jobSalaries]);
+  }, [summary, totalEmployees, countrySalaries, jobSalaries, exportFormat, exportScope, exportSelection]);
 
   useEffect(() => {
     setSummaryLoading(true);
@@ -297,6 +458,18 @@ export default function InsightsDashboard() {
       {toast && (
         <Toast message={toast.message} type={toast.type} onDismiss={dismissToast} />
       )}
+      <ExportDialog
+        open={exportDialogOpen}
+        loading={exporting}
+        format={exportFormat}
+        scope={exportScope}
+        selection={exportSelection}
+        onFormatChange={setExportFormat}
+        onScopeChange={setExportScope}
+        onSelectionChange={setExportSelection}
+        onCancel={() => setExportDialogOpen(false)}
+        onExport={handleExport}
+      />
 
       {/* ── Page Header ── */}
       <header className="border-b border-gray-200 bg-white/95 backdrop-blur transition-colors duration-300 dark:border-gray-800 dark:bg-gray-950/90">
@@ -320,26 +493,14 @@ export default function InsightsDashboard() {
 
               {/* Export button */}
               <button
-                onClick={handleExport}
-                disabled={exporting || anyLoading}
+                onClick={() => setExportDialogOpen(true)}
+                disabled={anyLoading}
                 className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition-all duration-200 hover:border-gray-300 hover:bg-gray-50 hover:shadow-md active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:border-gray-600 dark:hover:bg-gray-800 dark:hover:shadow-black/20"
               >
-                {exporting ? (
-                  <>
-                    <svg className="h-4 w-4 animate-spin text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                    </svg>
-                    Exporting…
-                  </>
-                ) : (
-                  <>
-                    <svg className="h-4 w-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                    </svg>
-                    Export Report
-                  </>
-                )}
+                <svg className="h-4 w-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                </svg>
+                Export Report
               </button>
             </div>
           </div>
