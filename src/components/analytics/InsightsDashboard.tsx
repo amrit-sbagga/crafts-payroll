@@ -79,7 +79,8 @@ function MetricCard({
   label,
   description,
   value,
-  loading
+  loading,
+  compact = false
 }: {
   icon: React.ReactNode;
   iconBg: string;
@@ -88,16 +89,25 @@ function MetricCard({
   description: string;
   value: string;
   loading: boolean;
+  compact?: boolean;
 }) {
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900 dark:shadow-black/20 dark:hover:shadow-black/30">
+    <div
+      className={`group relative overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900 dark:shadow-black/20 dark:hover:shadow-black/30 ${
+        compact ? "p-4" : "p-6"
+      }`}
+    >
       {/* Colored left accent bar */}
       <div className={`absolute inset-y-0 left-0 w-1 rounded-l-2xl ${accentColor}`} />
 
       <div className="pl-2">
         {/* Icon */}
-        <div className="mb-4 flex items-center justify-between">
-          <div className={`inline-flex h-10 w-10 items-center justify-center rounded-xl ${iconBg} transition-transform duration-200 group-hover:scale-110`}>
+        <div className={`${compact ? "mb-2.5" : "mb-4"} flex items-center justify-between`}>
+          <div
+            className={`inline-flex items-center justify-center rounded-xl ${iconBg} transition-transform duration-200 group-hover:scale-110 ${
+              compact ? "h-8 w-8" : "h-10 w-10"
+            }`}
+          >
             {icon}
           </div>
         </div>
@@ -109,16 +119,20 @@ function MetricCard({
 
         {/* Value */}
         {loading ? (
-          <div className="mt-2 space-y-2">
-            <div className="h-9 w-32 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800" />
+          <div className={`${compact ? "mt-1.5" : "mt-2"} space-y-2`}>
+            <div className={`${compact ? "h-7 w-28" : "h-9 w-32"} animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800`} />
             <div className="h-3 w-24 animate-pulse rounded bg-gray-100 dark:bg-gray-800" />
           </div>
         ) : (
           <>
-            <p className="mt-1 text-3xl font-extrabold tabular-nums tracking-tight text-gray-900 dark:text-gray-100">
+            <p
+              className={`mt-1 font-extrabold tabular-nums tracking-tight text-gray-900 dark:text-gray-100 ${
+                compact ? "text-2xl" : "text-3xl"
+              }`}
+            >
               {value}
             </p>
-            <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">{description}</p>
+            <p className={`${compact ? "mt-1" : "mt-1.5"} text-xs text-gray-500 dark:text-gray-400`}>{description}</p>
           </>
         )}
       </div>
@@ -519,13 +533,13 @@ export default function InsightsDashboard() {
 
       {/* ── Page Header ── */}
       <header className="border-b border-gray-200 bg-white/95 backdrop-blur transition-colors duration-300 dark:border-gray-800 dark:bg-gray-950/90">
-        <div className="mx-auto max-w-7xl px-4 py-7 sm:px-6">
-          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+        <div className="mx-auto max-w-[1500px] px-4 py-4 sm:px-6">
+          <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
             <div>
-              <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-gray-100">
+              <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
                 Salary Insights
               </h1>
-              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+              <p className="mt-0.5 text-xs text-gray-600 dark:text-gray-400 sm:text-sm">
                 Understand workforce compensation trends across countries and roles
               </p>
             </div>
@@ -553,80 +567,110 @@ export default function InsightsDashboard() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl space-y-10 px-4 py-8 pb-14 sm:space-y-12 sm:px-6 sm:py-10 sm:pb-16">
+      <main className="mx-auto max-w-[1500px] px-4 py-6 pb-12 sm:px-6 sm:py-8">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[320px_minmax(0,1fr)] lg:gap-8">
+          <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
+            <SectionLabel>Key Metrics</SectionLabel>
+            {summaryError ? (
+              <ErrorState message="Failed to load global salary summary." />
+            ) : (
+              <div className="grid grid-cols-1 gap-3">
+                <MetricCard
+                  iconBg="bg-blue-50"
+                  accentColor="bg-blue-500"
+                  icon={
+                    <svg className="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+                    </svg>
+                  }
+                  label="Total Employees"
+                  description="Active workforce records"
+                  value={totalEmployees !== null ? totalEmployees.toLocaleString() : "—"}
+                  loading={summaryLoading}
+                compact
+                />
+                <MetricCard
+                  iconBg="bg-emerald-50"
+                  accentColor="bg-emerald-500"
+                  icon={
+                    <svg className="h-5 w-5 text-emerald-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941" />
+                    </svg>
+                  }
+                  label="Average Salary"
+                  description="Across all employees"
+                  value={summary ? fmt(summary.avgSalary) : "—"}
+                  loading={summaryLoading}
+                compact
+                />
+                <MetricCard
+                  iconBg="bg-amber-50"
+                  accentColor="bg-amber-400"
+                  icon={
+                    <svg className="h-5 w-5 text-amber-500" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+                    </svg>
+                  }
+                  label="Highest Salary"
+                  description="Top compensation recorded"
+                  value={summary ? fmt(summary.maxSalary) : "—"}
+                  loading={summaryLoading}
+                compact
+                />
+                <MetricCard
+                  iconBg="bg-violet-50"
+                  accentColor="bg-violet-500"
+                  icon={
+                    <svg className="h-5 w-5 text-violet-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
+                    </svg>
+                  }
+                  label="Lowest Salary"
+                  description="Floor compensation recorded"
+                  value={summary ? fmt(summary.minSalary) : "—"}
+                  loading={summaryLoading}
+                compact
+                />
+              </div>
+            )}
 
-        {/* ── Section 1: Key Metrics ── */}
-        <section className="space-y-4">
-          <SectionLabel>Key Metrics</SectionLabel>
+            {!departmentError && (
+              <div className="space-y-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:shadow-black/20">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                  Department Highlights
+                </p>
+                <div className="rounded-lg bg-gray-50 px-3 py-2 dark:bg-gray-800/70">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Headcount</p>
+                  <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                    {departmentLoading ? "—" : totalDepartmentHeadcount.toLocaleString()}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-gray-50 px-3 py-2 dark:bg-gray-800/70">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Avg Department Salary</p>
+                  <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                    {departmentLoading ? "—" : fmt(departmentAverageAcrossGroups)}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-gray-50 px-3 py-2 dark:bg-gray-800/70">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Top Department</p>
+                  <p className="text-base font-semibold text-gray-900 dark:text-gray-100">
+                    {departmentLoading ? "—" : highestPayingDepartment?.department ?? "—"}
+                  </p>
+                </div>
+              </div>
+            )}
+          </aside>
 
-          {summaryError ? (
-            <ErrorState message="Failed to load global salary summary." />
-          ) : (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <MetricCard
-                iconBg="bg-blue-50"
-                accentColor="bg-blue-500"
-                icon={
-                  <svg className="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
-                  </svg>
-                }
-                label="Total Employees"
-                description="Active workforce records"
-                value={totalEmployees !== null ? totalEmployees.toLocaleString() : "—"}
-                loading={summaryLoading}
-              />
-              <MetricCard
-                iconBg="bg-emerald-50"
-                accentColor="bg-emerald-500"
-                icon={
-                  <svg className="h-5 w-5 text-emerald-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941" />
-                  </svg>
-                }
-                label="Average Salary"
-                description="Across all employees"
-                value={summary ? fmt(summary.avgSalary) : "—"}
-                loading={summaryLoading}
-              />
-              <MetricCard
-                iconBg="bg-amber-50"
-                accentColor="bg-amber-400"
-                icon={
-                  <svg className="h-5 w-5 text-amber-500" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
-                  </svg>
-                }
-                label="Highest Salary"
-                description="Top compensation recorded"
-                value={summary ? fmt(summary.maxSalary) : "—"}
-                loading={summaryLoading}
-              />
-              <MetricCard
-                iconBg="bg-violet-50"
-                accentColor="bg-violet-500"
-                icon={
-                  <svg className="h-5 w-5 text-violet-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
-                  </svg>
-                }
-                label="Lowest Salary"
-                description="Floor compensation recorded"
-                value={summary ? fmt(summary.minSalary) : "—"}
-                loading={summaryLoading}
-              />
-            </div>
-          )}
-        </section>
+          <div className="space-y-6">
 
         {/* ── Section 1b: Salary Distribution ── */}
-        <section className="space-y-4">
+        <section className="space-y-3">
           <SectionLabel>Salary Distribution</SectionLabel>
           <SalaryDistributionChart />
         </section>
 
         {/* ── Section 2: Country Analysis ── */}
-        <section className="space-y-5">
+        <section className="space-y-4">
           <SectionLabel>Country Analysis</SectionLabel>
 
           {/* Bar chart — primary visual */}
@@ -752,14 +796,14 @@ export default function InsightsDashboard() {
         </section>
 
         {/* ── Section 2.5: Department Analytics ── */}
-        <section className="space-y-5">
+        <section className="space-y-4">
           <SectionLabel>Department Analytics</SectionLabel>
 
           {departmentError ? (
             <ErrorState message="Failed to load department analytics." />
           ) : (
             <>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
                 <MetricCard
                   iconBg="bg-indigo-50"
                   accentColor="bg-indigo-500"
@@ -882,7 +926,7 @@ export default function InsightsDashboard() {
         </section>
 
         {/* ── Section 3: Job Title Analysis ── */}
-        <section className="space-y-4">
+        <section className="space-y-3">
           <SectionLabel>Job Title Analysis</SectionLabel>
 
           <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-200 hover:shadow-md dark:border-gray-800 dark:bg-gray-900 dark:shadow-black/20 dark:hover:shadow-black/30">
@@ -1025,6 +1069,8 @@ export default function InsightsDashboard() {
           />
         )}
 
+          </div>
+        </div>
       </main>
     </div>
   );
