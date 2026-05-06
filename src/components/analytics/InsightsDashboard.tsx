@@ -305,9 +305,28 @@ export default function InsightsDashboard() {
         </section>
 
         {/* ── Section 2: Country Analysis ── */}
-        <section className="space-y-4">
+        <section className="space-y-5">
           <SectionLabel>Country Analysis</SectionLabel>
 
+          {/* Bar chart — primary visual */}
+          {!countryError && (
+            <BarChartCard
+              title="Average Salary by Country"
+              subtitle="One bar per country · darker bar = above overall average"
+              data={countrySalaries.map(r => ({ country: r.country, avg: r.avgSalary }))}
+              xKey="country"
+              yKey="avg"
+              color="#93c5fd"
+              highlightColor="#2563eb"
+              referenceValue={summary?.avgSalary}
+              referenceLabel="Overall Avg"
+              formatValue={fmt}
+              loading={countryLoading || summaryLoading}
+              height={300}
+            />
+          )}
+
+          {/* Detail table */}
           <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-shadow duration-200 hover:shadow-md">
             {/* Card header */}
             <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5">
@@ -410,20 +429,6 @@ export default function InsightsDashboard() {
             </div>
           </div>
         </section>
-
-        {/* ── Country Chart ── */}
-        {!countryError && (
-          <BarChartCard
-            title="Average Salary by Country"
-            subtitle="Visual comparison of average compensation per country"
-            data={countrySalaries.map(r => ({ country: r.country, avg: r.avgSalary }))}
-            xKey="country"
-            yKey="avg"
-            color="#3b82f6"
-            formatValue={fmt}
-            loading={countryLoading}
-          />
-        )}
 
         {/* ── Section 3: Job Title Analysis ── */}
         <section className="space-y-4">
