@@ -1,17 +1,18 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import type { KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useCallback, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import MetricCard from "@/features/analytics/components/MetricCard";
+import InsightsToast, { type ToastType } from "@/features/analytics/components/InsightsToast";
+import ExportDialog, { type ExportScope } from "@/features/analytics/components/ExportDialog";
+import SectionLabel from "@/features/analytics/components/SectionLabel";
+import SalaryBar from "@/features/analytics/components/SalaryBar";
+import { EmptyTableState, ErrorState, RowSkeleton } from "@/features/analytics/components/AnalyticsTableStates";
+import InsightsTabs, { type InsightsTab } from "@/features/analytics/components/InsightsTabs";
+import AnalyticsFiltersToolbar from "@/features/analytics/components/AnalyticsFiltersToolbar";
+import useAnalytics from "@/features/analytics/hooks/useAnalytics";
 import PageHeader from "@/shared/components/PageHeader";
-import TableToolbar from "@/shared/components/TableToolbar";
-import type {
-  CountrySalaryStats,
-  DepartmentSalaryStats,
-  JobTitleSalaryStats,
-  GlobalSalarySummary
-} from "@/modules/employee/employeeAnalytics.service";
+import type { DepartmentSalaryStats } from "@/modules/employee/employeeAnalytics.service";
 import type { ExportFormat, ExportSelection } from "@/lib/exportReport";
 import { exportReport } from "@/lib/exportReport";
 import { formatCurrency } from "@/lib/formatters";
@@ -24,328 +25,28 @@ function fmt(value: number): string {
   return formatCurrency(value);
 }
 
-// ─── Toast ────────────────────────────────────────────────────────────────────
-
-type ToastType = "success" | "error";
-type ExportScope = "all" | "custom";
-type InsightsTab = "overview" | "country" | "department" | "distribution" | "reports";
-
-function Toast({
-  message,
-  type,
-  onDismiss,
-}: {
-  message: string;
-  type: ToastType;
-  onDismiss: () => void;
-}) {
-  useEffect(() => {
-    const t = setTimeout(onDismiss, 3500);
-    return () => clearTimeout(t);
-  }, [onDismiss]);
-
-  const isSuccess = type === "success";
-  return (
-    <div
-      className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-2xl border px-4 py-3 shadow-xl transition-all duration-300 animate-fade-in-up ${
-        isSuccess
-          ? "border-emerald-200 bg-white text-emerald-700 dark:border-emerald-900/60 dark:bg-gray-900 dark:text-emerald-300"
-          : "border-red-200 bg-white text-red-600 dark:border-red-900/60 dark:bg-gray-900 dark:text-red-300"
-      }`}
-    >
-      {isSuccess ? (
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950/40">
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-          </svg>
-        </span>
-      ) : (
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-red-50 dark:bg-red-950/40">
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </span>
-      )}
-      <span className="text-sm font-medium">{message}</span>
-      <button
-        onClick={onDismiss}
-        className="ml-1 rounded-md p-0.5 opacity-50 hover:opacity-100 transition-opacity"
-        aria-label="Dismiss"
-      >
-        <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-    </div>
-  );
-}
-
-// ─── Section header ───────────────────────────────────────────────────────────
-
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex items-center gap-3">
-      <div className="h-px flex-1 bg-gray-200 dark:bg-gray-800" />
-      <span className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
-        {children}
-      </span>
-      <div className="h-px flex-1 bg-gray-200 dark:bg-gray-800" />
-    </div>
-  );
-}
-
-// ─── Salary bar ───────────────────────────────────────────────────────────────
-
-function SalaryBar({
-  value,
-  max,
-  color = "bg-blue-500"
-}: {
-  value: number;
-  max: number;
-  color?: string;
-}) {
-  const pct = max > 0 ? Math.round((value / max) * 100) : 0;
-  return (
-    <div className="flex items-center gap-2.5">
-      <div className="h-2 w-32 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
-        <div
-          className={`h-full rounded-full ${color} transition-all duration-700 ease-out`}
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-      <span className="w-8 text-right text-xs tabular-nums text-gray-500 dark:text-gray-400">{pct}%</span>
-    </div>
-  );
-}
-
-// ─── Skeletons ────────────────────────────────────────────────────────────────
-
-const SKELETON_WIDTHS = ["w-28", "w-20", "w-16", "w-12", "w-24"];
-
-function RowSkeleton({ cols }: { cols: number }) {
-  return (
-    <>
-      {Array.from({ length: 5 }).map((_, i) => (
-        <tr key={i} className="border-b border-gray-100 last:border-0 dark:border-gray-800">
-          {Array.from({ length: cols }).map((_, j) => (
-            <td key={j} className="px-4 py-4">
-              <div
-                className={`h-3.5 animate-pulse rounded-full bg-gray-100 dark:bg-gray-800 ${SKELETON_WIDTHS[(i + j) % SKELETON_WIDTHS.length]}`}
-                style={{ animationDelay: `${(i + j) * 60}ms` }}
-              />
-            </td>
-          ))}
-        </tr>
-      ))}
-    </>
-  );
-}
-
-function EmptyTableState({ message }: { message: string }) {
-  return (
-    <tr>
-      <td colSpan={99} className="px-4 py-12 text-center">
-        <div className="flex flex-col items-center gap-2">
-          <svg className="h-8 w-8 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776" />
-          </svg>
-          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{message}</p>
-        </div>
-      </td>
-    </tr>
-  );
-}
-
-// ─── Error state ──────────────────────────────────────────────────────────────
-
-function ErrorState({ message }: { message: string }) {
-  return (
-    <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">
-      <svg className="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-        <path fillRule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm-.75-4.75a.75.75 0 0 0 1.5 0v-4.5a.75.75 0 0 0-1.5 0v4.5Zm.75-7a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z" clipRule="evenodd" />
-      </svg>
-      {message}
-    </div>
-  );
-}
-
-function ExportDialog({
-  open,
-  loading,
-  format,
-  scope,
-  selection,
-  onFormatChange,
-  onScopeChange,
-  onSelectionChange,
-  onCancel,
-  onExport,
-}: {
-  open: boolean;
-  loading: boolean;
-  format: ExportFormat;
-  scope: ExportScope;
-  selection: ExportSelection;
-  onFormatChange: (format: ExportFormat) => void;
-  onScopeChange: (scope: ExportScope) => void;
-  onSelectionChange: (next: ExportSelection) => void;
-  onCancel: () => void;
-  onExport: () => void;
-}) {
-  const exportButtonRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    exportButtonRef.current?.focus();
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") onCancel();
-    }
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, [open, onCancel]);
-
-  if (!open) return null;
-  const nothingSelected =
-    scope === "custom" &&
-    !selection.includeSummary &&
-    !selection.includeCountryStats &&
-    !selection.includeJobStats;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" onClick={onCancel}>
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="export-report-title"
-        className="w-full max-w-lg rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-900"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div className="border-b border-gray-100 px-6 py-4 dark:border-gray-800">
-          <h3 id="export-report-title" className="text-base font-semibold text-gray-900 dark:text-gray-100">Export Report</h3>
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            Choose file format and what data to include.
-          </p>
-        </div>
-
-        <div className="space-y-5 px-6 py-5">
-          <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Format</p>
-            <div className="flex gap-2">
-              {(["csv", "pdf"] as const).map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  onClick={() => onFormatChange(option)}
-                  className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
-                    format === option
-                      ? "border-blue-500 bg-blue-50 text-blue-700 dark:border-blue-400 dark:bg-blue-950/40 dark:text-blue-300"
-                      : "border-gray-200 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
-                  }`}
-                >
-                  {option.toUpperCase()}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Data scope</p>
-            <div className="space-y-2 text-sm">
-              <label className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
-                <input
-                  type="radio"
-                  name="export-scope"
-                  checked={scope === "all"}
-                  onChange={() => onScopeChange("all")}
-                />
-                Export full report
-              </label>
-              <label className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
-                <input
-                  type="radio"
-                  name="export-scope"
-                  checked={scope === "custom"}
-                  onChange={() => onScopeChange("custom")}
-                />
-                Select sections
-              </label>
-            </div>
-          </div>
-
-          <div className={`space-y-2 rounded-lg border border-gray-200 p-3 dark:border-gray-700 ${scope === "all" ? "opacity-60" : ""}`}>
-            {([
-              { key: "includeSummary", label: "Global summary" },
-              { key: "includeCountryStats", label: "Country salary stats" },
-              { key: "includeJobStats", label: "Job title salary stats" },
-            ] as const).map((item) => (
-              <label key={item.key} className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
-                <input
-                  type="checkbox"
-                  disabled={scope === "all"}
-                  checked={selection[item.key]}
-                  onChange={(e) =>
-                    onSelectionChange({
-                      ...selection,
-                      [item.key]: e.target.checked,
-                    })
-                  }
-                />
-                {item.label}
-              </label>
-            ))}
-          </div>
-          {nothingSelected && (
-            <p className="text-xs text-red-500 dark:text-red-400">
-              Select at least one section to export.
-            </p>
-          )}
-        </div>
-
-        <div className="flex items-center justify-end gap-3 border-t border-gray-100 px-6 py-4 dark:border-gray-800">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
-          >
-            Cancel
-          </button>
-          <button
-            ref={exportButtonRef}
-            type="button"
-            onClick={onExport}
-            disabled={loading || nothingSelected}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {loading ? "Exporting..." : "Export"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 
 export default function InsightsDashboard() {
-  const [summary, setSummary] = useState<GlobalSalarySummary | null>(null);
-  const [totalEmployees, setTotalEmployees] = useState<number | null>(null);
-  const [countrySalaries, setCountrySalaries] = useState<CountrySalaryStats[]>([]);
-  const [departmentSalaries, setDepartmentSalaries] = useState<DepartmentSalaryStats[]>([]);
-  const [jobSalaries, setJobSalaries] = useState<JobTitleSalaryStats[]>([]);
-
-  const [summaryLoading, setSummaryLoading] = useState(true);
-  const [countryLoading, setCountryLoading] = useState(true);
-  const [departmentLoading, setDepartmentLoading] = useState(true);
-  const [jobLoading, setJobLoading] = useState(true);
-
   const [selectedCountry, setSelectedCountry] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("");
   const [refreshTick, setRefreshTick] = useState(0);
-  const [summaryError, setSummaryError] = useState(false);
-  const [countryError, setCountryError] = useState(false);
-  const [departmentError, setDepartmentError] = useState(false);
-  const [jobError, setJobError] = useState(false);
+  const {
+    summary,
+    totalEmployees,
+    countrySalaries,
+    departmentSalaries,
+    filteredDepartmentSalaries,
+    jobSalaries,
+    summaryLoading,
+    countryLoading,
+    departmentLoading,
+    jobLoading,
+    summaryError,
+    countryError,
+    departmentError,
+    jobError
+  } = useAnalytics(selectedCountry, selectedDepartment, refreshTick);
 
   const [exporting, setExporting] = useState(false);
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
@@ -388,58 +89,8 @@ export default function InsightsDashboard() {
     }
   }, [summary, totalEmployees, countrySalaries, jobSalaries, exportFormat, exportScope, exportSelection]);
 
-  useEffect(() => {
-    setSummaryLoading(true);
-    setSummaryError(false);
-    Promise.all([
-      fetch("/api/analytics/summary").then(r => r.json()),
-      fetch("/api/employees?limit=1").then(r => r.json())
-    ])
-      .then(([summaryJson, employeesJson]) => {
-        setSummary(summaryJson.data);
-        setTotalEmployees(employeesJson.meta?.total ?? null);
-      })
-      .catch(() => setSummaryError(true))
-      .finally(() => setSummaryLoading(false));
-  }, [refreshTick]);
-
-  useEffect(() => {
-    setCountryLoading(true);
-    setCountryError(false);
-    fetch("/api/analytics/country-salaries")
-      .then(r => r.json())
-      .then(json => setCountrySalaries(json.data ?? []))
-      .catch(() => setCountryError(true))
-      .finally(() => setCountryLoading(false));
-  }, [refreshTick]);
-
-  useEffect(() => {
-    setDepartmentLoading(true);
-    setDepartmentError(false);
-    fetch("/api/analytics/department-salaries")
-      .then(r => r.json())
-      .then(json => setDepartmentSalaries(json.data ?? []))
-      .catch(() => setDepartmentError(true))
-      .finally(() => setDepartmentLoading(false));
-  }, [refreshTick]);
-
-  useEffect(() => {
-    setJobLoading(true);
-    setJobError(false);
-    const params = new URLSearchParams();
-    if (selectedCountry) params.set("country", selectedCountry);
-    fetch(`/api/analytics/job-salaries?${params}`)
-      .then(r => r.json())
-      .then(json => setJobSalaries(json.data ?? []))
-      .catch(() => setJobError(true))
-      .finally(() => setJobLoading(false));
-  }, [selectedCountry, refreshTick]);
-
-  const countryOptions = countrySalaries.map(c => c.country);
-  const departmentOptions = departmentSalaries.map(d => d.department);
-  const filteredDepartmentSalaries = selectedDepartment
-    ? departmentSalaries.filter((row) => row.department === selectedDepartment)
-    : departmentSalaries;
+  const countryOptions = useMemo(() => countrySalaries.map(c => c.country), [countrySalaries]);
+  const departmentOptions = useMemo(() => departmentSalaries.map(d => d.department), [departmentSalaries]);
   const maxCountryAvg = Math.max(...countrySalaries.map(r => r.avgSalary), 1);
   const maxDepartmentAvg = Math.max(...filteredDepartmentSalaries.map(r => r.avgSalary), 1);
   const maxJobAvg = Math.max(...jobSalaries.map(r => r.avgSalary), 1);
@@ -457,34 +108,12 @@ export default function InsightsDashboard() {
   );
 
   const anyLoading = summaryLoading || countryLoading || departmentLoading || jobLoading;
-  const tabs: Array<{ id: InsightsTab; label: string }> = [
-    { id: "overview", label: "Overview" },
-    { id: "country", label: "Country Analytics" },
-    { id: "department", label: "Department Analytics" },
-    { id: "distribution", label: "Salary Distribution" },
-    { id: "reports", label: "Reports" },
-  ];
-  const activeTabIndex = tabs.findIndex((tab) => tab.id === activeTab);
-
-  function onTabsKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
-    if (event.key !== "ArrowRight" && event.key !== "ArrowLeft" && event.key !== "Home" && event.key !== "End") {
-      return;
-    }
-    event.preventDefault();
-    let nextIndex = activeTabIndex;
-    if (event.key === "ArrowRight") nextIndex = (activeTabIndex + 1) % tabs.length;
-    if (event.key === "ArrowLeft") nextIndex = (activeTabIndex - 1 + tabs.length) % tabs.length;
-    if (event.key === "Home") nextIndex = 0;
-    if (event.key === "End") nextIndex = tabs.length - 1;
-    setActiveTab(tabs[nextIndex].id);
-  }
-
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 transition-colors duration-300 dark:bg-gray-950 dark:text-gray-100">
 
       {/* ── Toast ── */}
       {toast && (
-        <Toast message={toast.message} type={toast.type} onDismiss={dismissToast} />
+        <InsightsToast message={toast.message} type={toast.type} onDismiss={dismissToast} />
       )}
       <ExportDialog
         open={exportDialogOpen}
@@ -505,90 +134,19 @@ export default function InsightsDashboard() {
       />
 
       <main className="mx-auto max-w-[1500px] space-y-5 px-4 py-6 pb-12 sm:px-6 sm:py-8">
-        <section className="sticky top-2 z-20 rounded-2xl border border-gray-200 bg-white/95 p-1 shadow-sm backdrop-blur dark:border-gray-800 dark:bg-gray-900/90">
-          <div
-            className="flex flex-wrap gap-1.5"
-            role="tablist"
-            aria-label="Insights analytics sections"
-            onKeyDown={onTabsKeyDown}
-          >
-            {tabs.map((tab, index) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id)}
-                role="tab"
-                id={`insights-tab-${tab.id}`}
-                aria-controls={`insights-panel-${tab.id}`}
-                aria-selected={activeTab === tab.id}
-                tabIndex={activeTab === tab.id ? 0 : -1}
-                className={`rounded-xl px-3 py-2 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${
-                  activeTab === tab.id
-                    ? "bg-blue-600 text-white shadow-sm ring-1 ring-blue-500/40"
-                    : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </section>
+        <InsightsTabs activeTab={activeTab} onChange={setActiveTab} />
 
-        <TableToolbar stickyTopClass="sticky top-[66px]">
-            <button
-              type="button"
-              onClick={() => setExportDialogOpen(true)}
-              disabled={anyLoading}
-              className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
-            >
-              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-              </svg>
-              Export Report
-            </button>
-
-            <div className="inline-flex min-w-[170px] items-center rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs text-gray-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400">
-              Date Range (Coming soon)
-            </div>
-
-            <select
-              value={selectedCountry}
-              onChange={(e) => setSelectedCountry(e.target.value)}
-              className="min-w-[150px] rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs text-gray-700 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:focus:border-blue-500 dark:focus:ring-blue-900/40"
-            >
-              <option value="">All Countries</option>
-              {countryOptions.map((country) => (
-                <option key={country} value={country}>
-                  {country}
-                </option>
-              ))}
-            </select>
-
-            <select
-              value={selectedDepartment}
-              onChange={(e) => setSelectedDepartment(e.target.value)}
-              className="min-w-[170px] rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs text-gray-700 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:focus:border-blue-500 dark:focus:ring-blue-900/40"
-            >
-              <option value="">All Departments</option>
-              {departmentOptions.map((department) => (
-                <option key={department} value={department}>
-                  {department}
-                </option>
-              ))}
-            </select>
-
-            <button
-              type="button"
-              onClick={() => setRefreshTick((v) => v + 1)}
-              disabled={anyLoading}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
-            >
-              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992V4.356m-1.176 13.86A9 9 0 0 1 6.343 6.343M3 3v5h5" />
-              </svg>
-              Refresh
-            </button>
-        </TableToolbar>
+        <AnalyticsFiltersToolbar
+          anyLoading={anyLoading}
+          selectedCountry={selectedCountry}
+          selectedDepartment={selectedDepartment}
+          countryOptions={countryOptions}
+          departmentOptions={departmentOptions}
+          onOpenExport={() => setExportDialogOpen(true)}
+          onCountryChange={setSelectedCountry}
+          onDepartmentChange={setSelectedDepartment}
+          onRefresh={() => setRefreshTick(v => v + 1)}
+        />
 
         {activeTab === "overview" && (
           <section id="insights-panel-overview" role="tabpanel" aria-labelledby="insights-tab-overview" className="space-y-4">

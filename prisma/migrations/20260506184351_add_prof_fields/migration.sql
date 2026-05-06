@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Employee" ALTER COLUMN "gender" DROP DEFAULT,
+ALTER COLUMN "joiningDate" DROP DEFAULT;
