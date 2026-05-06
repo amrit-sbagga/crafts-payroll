@@ -35,33 +35,43 @@
 
 /* Density system: comfortable is default, compact tightens spacing. */
 :root[data-density="compact"] .density-header {
-  padding-top: 0.55rem;
-  padding-bottom: 0.55rem;
+  padding-top: 0.4rem !important;
+  padding-bottom: 0.4rem !important;
 }
 
 :root[data-density="compact"] .density-panel {
-  padding: 0.75rem;
+  padding: 0.65rem !important;
 }
 
-:root[data-density="compact"] .density-stack {
-  gap: 0.5rem;
+:root[data-density="compact"] .density-stack > * + * {
+  margin-top: 0.45rem !important;
 }
 
 :root[data-density="compact"] .density-input {
-  padding: 0.4rem 0.65rem;
-  font-size: 0.8rem;
+  padding: 0.3rem 0.55rem !important;
+  font-size: 0.76rem !important;
 }
 
 :root[data-density="compact"] .density-btn {
-  padding: 0.38rem 0.62rem;
+  padding: 0.3rem 0.55rem !important;
 }
 
 :root[data-density="compact"] .density-table th {
-  padding-top: 0.55rem;
-  padding-bottom: 0.55rem;
+  padding-top: 0.4rem !important;
+  padding-bottom: 0.4rem !important;
 }
 
 :root[data-density="compact"] .density-table td {
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
+  padding-top: 0.35rem !important;
+  padding-bottom: 0.35rem !important;
+}
+
+:root[data-density="compact"] .density-analytics table th {
+  padding-top: 0.45rem !important;
+  padding-bottom: 0.45rem !important;
+}
+
+:root[data-density="compact"] .density-analytics table td {
+  padding-top: 0.4rem !important;
+  padding-bottom: 0.4rem !important;
 }

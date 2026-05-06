@@ -133,7 +133,7 @@ export default function InsightsDashboard() {
         description="Understand workforce compensation trends across countries and roles"
       />
 
-      <main className="mx-auto max-w-[1500px] space-y-5 px-4 py-6 pb-12 sm:px-6 sm:py-8">
+      <main className="density-analytics mx-auto max-w-[1500px] space-y-5 px-4 py-6 pb-12 sm:px-6 sm:py-8">
         <InsightsTabs activeTab={activeTab} onChange={setActiveTab} />
 
         <AnalyticsFiltersToolbar
