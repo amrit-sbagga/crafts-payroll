@@ -16,8 +16,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="bg-gray-50 text-gray-900 antialiased transition-colors duration-300 dark:bg-gray-950 dark:text-gray-100">
-        <nav className="border-b border-gray-200 bg-white/95 px-4 py-3 shadow-sm backdrop-blur transition-colors duration-300 sm:px-6 dark:border-gray-800 dark:bg-gray-950/90">
-          <div className="mx-auto flex w-full max-w-[1500px] items-center gap-6">
+        <nav className="border-b border-gray-200 bg-white/95 py-3 shadow-sm backdrop-blur transition-colors duration-300 dark:border-gray-800 dark:bg-gray-950/90">
+          <div className="mx-auto flex w-full max-w-[1500px] items-center gap-6 px-4 sm:px-6">
             <span className="text-sm font-bold tracking-wide uppercase text-gray-800 dark:text-gray-100">
               Salary Management
             </span>
