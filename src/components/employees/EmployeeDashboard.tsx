@@ -11,6 +11,164 @@ const DEFAULT_META: EmployeeMeta = {
   totalPages: 0
 };
 
+// ─── Delete confirmation modal ────────────────────────────────────────────────
+
+function DeleteConfirmModal({
+  employeeName,
+  onConfirm,
+  onCancel
+}: {
+  employeeName: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+      onClick={onCancel}
+    >
+      <div
+        className="w-full max-w-sm rounded-lg bg-white p-6 shadow-xl"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="mb-4 flex items-center gap-3">
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 text-red-600 text-lg">
+            ✕
+          </span>
+          <div>
+            <h3 className="font-semibold text-gray-900">Delete Employee</h3>
+            <p className="text-sm text-gray-500">This action cannot be undone.</p>
+          </div>
+        </div>
+        <p className="mb-5 text-sm text-gray-700">
+          Are you sure you want to delete{" "}
+          <span className="font-semibold">{employeeName}</span>?
+        </p>
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={onCancel}
+            className="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Table skeleton ───────────────────────────────────────────────────────────
+
+function TableSkeleton() {
+  return (
+    <>
+      {Array.from({ length: 8 }).map((_, i) => (
+        <tr key={i} className="animate-pulse">
+          {Array.from({ length: 5 }).map((_, j) => (
+            <td key={j} className="px-4 py-3.5">
+              <div className="h-3.5 rounded bg-gray-100" />
+            </td>
+          ))}
+        </tr>
+      ))}
+    </>
+  );
+}
+
+// ─── Empty state ──────────────────────────────────────────────────────────────
+
+function EmptyState({ hasFilters }: { hasFilters: boolean }) {
+  return (
+    <tr>
+      <td colSpan={5}>
+        <div className="flex flex-col items-center py-14 text-center">
+          <svg
+            className="mb-3 h-10 w-10 text-gray-300"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.5}
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"
+            />
+          </svg>
+          <p className="text-sm font-medium text-gray-500">
+            {hasFilters ? "No employees match your filters." : "No employees yet."}
+          </p>
+          {hasFilters && (
+            <p className="mt-1 text-xs text-gray-400">
+              Try adjusting your search or filters.
+            </p>
+          )}
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+// ─── Pagination ───────────────────────────────────────────────────────────────
+
+function Pagination({
+  meta,
+  page,
+  onPageChange
+}: {
+  meta: EmployeeMeta;
+  page: number;
+  onPageChange: (p: number) => void;
+}) {
+  const { total, totalPages, limit } = meta;
+  if (total === 0) return null;
+
+  const from = (page - 1) * limit + 1;
+  const to = Math.min(page * limit, total);
+
+  return (
+    <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
+      <span className="text-xs text-gray-500">
+        Showing <span className="font-medium text-gray-700">{from}–{to}</span> of{" "}
+        <span className="font-medium text-gray-700">{total.toLocaleString()}</span>{" "}
+        employee{total !== 1 ? "s" : ""}
+      </span>
+
+      {totalPages > 1 && (
+        <div className="flex items-center gap-1">
+          <button
+            disabled={page <= 1}
+            onClick={() => onPageChange(page - 1)}
+            className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            ← Prev
+          </button>
+
+          <span className="px-3 py-1.5 text-xs text-gray-500">
+            Page {page} of {totalPages}
+          </span>
+
+          <button
+            disabled={page >= totalPages}
+            onClick={() => onPageChange(page + 1)}
+            className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Next →
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Main Dashboard ───────────────────────────────────────────────────────────
+
 export default function EmployeeDashboard() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [meta, setMeta] = useState<EmployeeMeta>(DEFAULT_META);
@@ -23,6 +181,7 @@ export default function EmployeeDashboard() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+  const [deletingEmployee, setDeletingEmployee] = useState<Employee | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
   function refresh() {
@@ -59,24 +218,15 @@ export default function EmployeeDashboard() {
     };
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm("Delete this employee?")) return;
-    await fetch(`/api/employees/${id}`, { method: "DELETE" });
+  async function handleDeleteConfirmed() {
+    if (!deletingEmployee) return;
+    await fetch(`/api/employees/${deletingEmployee.id}`, { method: "DELETE" });
+    setDeletingEmployee(null);
     if (employees.length === 1 && page > 1) {
       setPage(p => p - 1);
     } else {
       refresh();
     }
-  }
-
-  function openAdd() {
-    setEditingEmployee(null);
-    setModalOpen(true);
-  }
-
-  function openEdit(employee: Employee) {
-    setEditingEmployee(employee);
-    setModalOpen(true);
   }
 
   function handleModalSuccess() {
@@ -85,17 +235,22 @@ export default function EmployeeDashboard() {
     refresh();
   }
 
+  const hasFilters = Boolean(search || country || jobTitle);
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* Page header */}
       <header className="border-b border-gray-200 bg-white px-6 py-4 shadow-sm">
         <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <h1 className="text-xl font-bold text-gray-900">
-            Salary Management Tool
-          </h1>
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">Employees</h1>
+            <p className="mt-0.5 text-sm text-gray-500">
+              Manage your team and salary records
+            </p>
+          </div>
           <button
-            onClick={openAdd}
-            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            onClick={() => { setEditingEmployee(null); setModalOpen(true); }}
+            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
           >
             + Add Employee
           </button>
@@ -103,93 +258,94 @@ export default function EmployeeDashboard() {
       </header>
 
       <main className="mx-auto max-w-7xl px-6 py-6">
-        {/* Filters */}
-        <div className="mb-4 flex flex-wrap gap-3">
-          <input
-            type="text"
-            placeholder="Search by name…"
-            value={search}
-            onChange={handleFilterChange(setSearch)}
-            className="rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 w-56"
-          />
-          <input
-            type="text"
-            placeholder="Filter by country…"
-            value={country}
-            onChange={handleFilterChange(setCountry)}
-            className="rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 w-48"
-          />
-          <input
-            type="text"
-            placeholder="Filter by job title…"
-            value={jobTitle}
-            onChange={handleFilterChange(setJobTitle)}
-            className="rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 w-48"
-          />
+        {/* Filter bar */}
+        <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div>
+            <label className="mb-1 block text-xs font-medium text-gray-500 uppercase tracking-wide">
+              Search by name
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. Ada Lovelace"
+              value={search}
+              onChange={handleFilterChange(setSearch)}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-gray-500 uppercase tracking-wide">
+              Filter by country
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. India"
+              value={country}
+              onChange={handleFilterChange(setCountry)}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-gray-500 uppercase tracking-wide">
+              Filter by job title
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. Engineer"
+              value={jobTitle}
+              onChange={handleFilterChange(setJobTitle)}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+            />
+          </div>
         </div>
 
-        {/* Table card */}
+        {/* Table */}
         <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-          <table className="min-w-full divide-y divide-gray-200 text-sm">
-            <thead className="bg-gray-50">
-              <tr>
-                {["Full Name", "Job Title", "Country", "Salary", "Actions"].map(
-                  h => (
-                    <th
-                      key={h}
-                      className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
-                    >
-                      {h}
-                    </th>
-                  )
-                )}
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-200 bg-gray-50">
+                {["Full Name", "Job Title", "Country", "Salary", "Actions"].map(h => (
+                  <th
+                    key={h}
+                    className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
+                  >
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
-                <tr>
-                  <td
-                    colSpan={5}
-                    className="px-4 py-10 text-center text-gray-400"
-                  >
-                    Loading…
-                  </td>
-                </tr>
+                <TableSkeleton />
               ) : employees.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={5}
-                    className="px-4 py-10 text-center text-gray-400"
-                  >
-                    No employees found.
-                  </td>
-                </tr>
+                <EmptyState hasFilters={hasFilters} />
               ) : (
                 employees.map(emp => (
-                  <tr key={emp.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium text-gray-900">
+                  <tr key={emp.id} className="hover:bg-blue-50/30 transition-colors">
+                    <td className="px-4 py-3.5 font-medium text-gray-900">
                       {emp.fullName}
                     </td>
-                    <td className="px-4 py-3 text-gray-600">{emp.jobTitle}</td>
-                    <td className="px-4 py-3 text-gray-600">{emp.country}</td>
-                    <td className="px-4 py-3 text-gray-600">
+                    <td className="px-4 py-3.5 text-gray-600">{emp.jobTitle}</td>
+                    <td className="px-4 py-3.5">
+                      <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">
+                        {emp.country}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3.5 font-medium text-gray-800">
                       {emp.salary.toLocaleString("en-US", {
-                        style: "currency",
-                        currency: "USD",
-                        maximumFractionDigits: 2
+                        maximumFractionDigits: 0
                       })}
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="flex gap-2">
+                    <td className="px-4 py-3.5">
+                      <div className="flex gap-1">
                         <button
-                          onClick={() => openEdit(emp)}
-                          className="rounded px-2 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50"
+                          onClick={() => { setEditingEmployee(emp); setModalOpen(true); }}
+                          className="rounded-md px-2.5 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 transition-colors"
                         >
                           Edit
                         </button>
                         <button
-                          onClick={() => handleDelete(emp.id)}
-                          className="rounded px-2 py-1 text-xs font-medium text-red-500 hover:bg-red-50"
+                          onClick={() => setDeletingEmployee(emp)}
+                          className="rounded-md px-2.5 py-1 text-xs font-medium text-red-500 hover:bg-red-50 transition-colors"
                         >
                           Delete
                         </button>
@@ -202,41 +358,24 @@ export default function EmployeeDashboard() {
           </table>
         </div>
 
-        {/* Pagination */}
-        {!loading && meta.totalPages > 1 && (
-          <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
-            <span>
-              {meta.total} employee{meta.total !== 1 ? "s" : ""} &mdash; page{" "}
-              {meta.page} of {meta.totalPages}
-            </span>
-            <div className="flex gap-2">
-              <button
-                disabled={page <= 1}
-                onClick={() => setPage(p => p - 1)}
-                className="rounded-md border border-gray-300 px-3 py-1 hover:bg-gray-100 disabled:opacity-40"
-              >
-                Previous
-              </button>
-              <button
-                disabled={page >= meta.totalPages}
-                onClick={() => setPage(p => p + 1)}
-                className="rounded-md border border-gray-300 px-3 py-1 hover:bg-gray-100 disabled:opacity-40"
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        )}
+        <Pagination meta={meta} page={page} onPageChange={setPage} />
       </main>
 
+      {/* Add / Edit modal */}
       {modalOpen && (
         <EmployeeFormModal
           employee={editingEmployee}
-          onClose={() => {
-            setModalOpen(false);
-            setEditingEmployee(null);
-          }}
+          onClose={() => { setModalOpen(false); setEditingEmployee(null); }}
           onSuccess={handleModalSuccess}
+        />
+      )}
+
+      {/* Delete confirmation modal */}
+      {deletingEmployee && (
+        <DeleteConfirmModal
+          employeeName={deletingEmployee.fullName}
+          onConfirm={handleDeleteConfirmed}
+          onCancel={() => setDeletingEmployee(null)}
         />
       )}
     </div>
