@@ -29,3 +29,16 @@ model Employee {
   @@index([jobTitle])
   @@index([department])
 }
+
+model PayrollRun {
+  id             String   @id @default(cuid())
+  month          Int
+  year           Int
+  totalEmployees Int
+  totalPayout    Decimal  @db.Decimal(14, 2)
+  avgPayout      Decimal  @db.Decimal(14, 2)
+  createdAt      DateTime @default(now())
+
+  @@index([year, month])
+  @@unique([year, month])
+}

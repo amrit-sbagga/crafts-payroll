@@ -11,6 +11,30 @@ const DEFAULT_META: EmployeeMeta = {
   totalPages: 0
 };
 
+const MONTH_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December"
+];
+
+type PayrollReport = {
+  month: number;
+  year: number;
+  totalEmployees: number;
+  totalPayout: number;
+  avgPayout: number;
+  createdAt: string;
+};
+
 // ─── Delete confirmation modal ────────────────────────────────────────────────
 
 function DeleteConfirmModal({
@@ -56,6 +80,144 @@ function DeleteConfirmModal({
             className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-red-700 active:scale-95"
           >
             Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RunPayrollModal({
+  month,
+  year,
+  submitting,
+  onMonthChange,
+  onYearChange,
+  onRun,
+  onClose
+}: {
+  month: number;
+  year: number;
+  submitting: boolean;
+  onMonthChange: (month: number) => void;
+  onYearChange: (year: number) => void;
+  onRun: () => void;
+  onClose: () => void;
+}) {
+  const years = Array.from({ length: 11 }, (_, i) => new Date().getFullYear() - 5 + i);
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="w-full max-w-md rounded-xl border border-gray-200 bg-white p-6 shadow-xl dark:border-gray-800 dark:bg-gray-900"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Run Monthly Payroll</h3>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          Select payroll period to generate payout summary.
+        </p>
+        <div className="mt-5 grid grid-cols-2 gap-3">
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-gray-600 dark:text-gray-300">Month</label>
+            <select
+              value={month}
+              onChange={(e) => onMonthChange(Number(e.target.value))}
+              className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:focus:border-blue-500 dark:focus:bg-gray-900 dark:focus:ring-blue-900/40"
+            >
+              {MONTH_NAMES.map((name, idx) => (
+                <option key={name} value={idx + 1}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-gray-600 dark:text-gray-300">Year</label>
+            <select
+              value={year}
+              onChange={(e) => onYearChange(Number(e.target.value))}
+              className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:focus:border-blue-500 dark:focus:bg-gray-900 dark:focus:ring-blue-900/40"
+            >
+              {years.map((y) => (
+                <option key={y} value={y}>
+                  {y}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <div className="mt-6 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-600 transition-all hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onRun}
+            disabled={submitting}
+            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-blue-700 disabled:opacity-60"
+          >
+            {submitting ? "Running..." : "Run Payroll"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PayrollReportModal({
+  report,
+  onClose
+}: {
+  report: PayrollReport;
+  onClose: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="w-full max-w-lg rounded-xl border border-gray-200 bg-white p-6 shadow-xl dark:border-gray-800 dark:bg-gray-900"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-4 flex items-center gap-3">
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+            ✓
+          </span>
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Payroll Run Complete</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {MONTH_NAMES[report.month - 1]} {report.year}
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+            <p className="text-xs text-gray-500 dark:text-gray-400">Employees Processed</p>
+            <p className="mt-1 text-lg font-bold text-gray-900 dark:text-gray-100">{report.totalEmployees.toLocaleString()}</p>
+          </div>
+          <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+            <p className="text-xs text-gray-500 dark:text-gray-400">Total Payout</p>
+            <p className="mt-1 text-lg font-bold text-gray-900 dark:text-gray-100">
+              {report.totalPayout.toLocaleString("en-US", { maximumFractionDigits: 0 })}
+            </p>
+          </div>
+          <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+            <p className="text-xs text-gray-500 dark:text-gray-400">Avg Payout</p>
+            <p className="mt-1 text-lg font-bold text-gray-900 dark:text-gray-100">
+              {report.avgPayout.toLocaleString("en-US", { maximumFractionDigits: 0 })}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-5 flex justify-end">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-blue-700"
+          >
+            Close
           </button>
         </div>
       </div>
@@ -207,6 +369,11 @@ export default function EmployeeDashboard() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [deletingEmployee, setDeletingEmployee] = useState<Employee | null>(null);
+  const [payrollModalOpen, setPayrollModalOpen] = useState(false);
+  const [payrollSubmitting, setPayrollSubmitting] = useState(false);
+  const [payrollReport, setPayrollReport] = useState<PayrollReport | null>(null);
+  const [payrollMonth, setPayrollMonth] = useState(new Date().getMonth() + 1);
+  const [payrollYear, setPayrollYear] = useState(new Date().getFullYear());
   const [refreshKey, setRefreshKey] = useState(0);
 
   function refresh() {
@@ -260,6 +427,25 @@ export default function EmployeeDashboard() {
     refresh();
   }
 
+  async function handleRunPayroll() {
+    setPayrollSubmitting(true);
+    try {
+      const res = await fetch("/api/payroll/run", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ month: payrollMonth, year: payrollYear })
+      });
+      if (!res.ok) throw new Error("Payroll run failed");
+      const json = await res.json();
+      setPayrollModalOpen(false);
+      setPayrollReport(json.data);
+    } catch {
+      // Keep UX simple for now; modal remains open and user can retry.
+    } finally {
+      setPayrollSubmitting(false);
+    }
+  }
+
   const hasFilters = Boolean(search || country || jobTitle);
 
   // Stats derived from already-fetched data — no extra API calls.
@@ -284,15 +470,26 @@ export default function EmployeeDashboard() {
               Manage your workforce efficiently
             </p>
           </div>
-          <button
-            onClick={() => { setEditingEmployee(null); setModalOpen(true); }}
-            className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 active:scale-95 active:bg-blue-800 transition-all duration-150"
-          >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            Add Employee
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPayrollModalOpen(true)}
+              className="flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-2.5 text-sm font-semibold text-indigo-700 shadow-sm transition-all duration-150 hover:bg-indigo-100 dark:border-indigo-900/60 dark:bg-indigo-950/40 dark:text-indigo-300 dark:hover:bg-indigo-950/60"
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m6-6H6" />
+              </svg>
+              Run Payroll
+            </button>
+            <button
+              onClick={() => { setEditingEmployee(null); setModalOpen(true); }}
+              className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-blue-700 active:scale-95 active:bg-blue-800"
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              Add Employee
+            </button>
+          </div>
         </div>
       </header>
 
@@ -498,6 +695,25 @@ export default function EmployeeDashboard() {
           employeeName={deletingEmployee.fullName}
           onConfirm={handleDeleteConfirmed}
           onCancel={() => setDeletingEmployee(null)}
+        />
+      )}
+
+      {payrollModalOpen && (
+        <RunPayrollModal
+          month={payrollMonth}
+          year={payrollYear}
+          submitting={payrollSubmitting}
+          onMonthChange={setPayrollMonth}
+          onYearChange={setPayrollYear}
+          onRun={handleRunPayroll}
+          onClose={() => setPayrollModalOpen(false)}
+        />
+      )}
+
+      {payrollReport && (
+        <PayrollReportModal
+          report={payrollReport}
+          onClose={() => setPayrollReport(null)}
         />
       )}
     </div>
