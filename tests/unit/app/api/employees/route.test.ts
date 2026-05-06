@@ -70,6 +70,9 @@ describe("/api/employees route handlers", () => {
         fullName: "",
         jobTitle: "Engineer",
         country: "India",
+        department: "Engineering",
+        gender: "Female",
+        joiningDate: "2024-01-01",
         salary: 1000
       })
     } as never;
@@ -93,6 +96,9 @@ describe("/api/employees route handlers", () => {
       jobTitle: "Engineer",
       country: "India",
       department: "Engineering",
+      gender: "Female",
+      joiningDate: "2024-01-01",
+      avatarUrl: "https://example.com/avatar.png",
       salary: 1000
     } as never);
 
@@ -102,6 +108,9 @@ describe("/api/employees route handlers", () => {
         jobTitle: "Engineer",
         country: "India",
         department: "Engineering",
+        gender: "Female",
+        joiningDate: "2024-01-01",
+        avatarUrl: "https://example.com/avatar.png",
         salary: 1000
       })
     } as never;
@@ -115,6 +124,9 @@ describe("/api/employees route handlers", () => {
       jobTitle: "Engineer",
       country: "India",
       department: "Engineering",
+      gender: "Female",
+      joiningDate: "2024-01-01",
+      avatarUrl: "https://example.com/avatar.png",
       salary: 1000
     });
     expect(json).toEqual({
@@ -124,6 +136,9 @@ describe("/api/employees route handlers", () => {
         jobTitle: "Engineer",
         country: "India",
         department: "Engineering",
+        gender: "Female",
+        joiningDate: "2024-01-01",
+        avatarUrl: "https://example.com/avatar.png",
         salary: 1000
       }
     });

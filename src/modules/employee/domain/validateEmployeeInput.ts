@@ -2,11 +2,15 @@ export type EmployeeInput = {
   fullName: string;
   jobTitle: string;
   country: string;
+  department: string;
+  gender: string;
+  joiningDate: string;
+  avatarUrl?: string;
   salary: number;
 };
 
 type EmployeeInputErrors = Partial<
-  Record<keyof EmployeeInput, "required" | "must_be_positive_number">
+  Record<keyof EmployeeInput, "required" | "must_be_positive_number" | "invalid_date">
 >;
 
 export function validateEmployeeInput(
@@ -17,6 +21,13 @@ export function validateEmployeeInput(
   if (input.fullName.trim().length === 0) errors.fullName = "required";
   if (input.jobTitle.trim().length === 0) errors.jobTitle = "required";
   if (input.country.trim().length === 0) errors.country = "required";
+  if (input.department.trim().length === 0) errors.department = "required";
+  if (input.gender.trim().length === 0) errors.gender = "required";
+  if (input.joiningDate.trim().length === 0) {
+    errors.joiningDate = "required";
+  } else if (Number.isNaN(new Date(input.joiningDate).getTime())) {
+    errors.joiningDate = "invalid_date";
+  }
 
   const salaryOk = Number.isFinite(input.salary) && input.salary > 0;
   if (!salaryOk) errors.salary = "must_be_positive_number";

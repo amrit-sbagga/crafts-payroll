@@ -45,7 +45,10 @@ export default async function EmployeeProfilePage({ params }: PageProps) {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
             <div className="h-20 w-20 overflow-hidden rounded-2xl border border-gray-200 bg-linear-to-br from-blue-100 to-indigo-100 dark:border-gray-700 dark:from-blue-950/30 dark:to-indigo-950/30">
               <img
-                src={`https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(employee.fullName)}`}
+                src={
+                  employee.avatarUrl ??
+                  `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(employee.fullName)}`
+                }
                 alt={`${employee.fullName} avatar`}
                 className="h-full w-full object-cover"
               />
@@ -55,6 +58,9 @@ export default async function EmployeeProfilePage({ params }: PageProps) {
               <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">{employee.fullName}</h1>
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{employee.jobTitle}</p>
               <div className="mt-3 flex flex-wrap items-center gap-2">
+                <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+                  {employee.gender}
+                </span>
                 <span className="rounded-full bg-violet-50 px-2.5 py-1 text-xs font-semibold text-violet-700 dark:bg-violet-950/40 dark:text-violet-300">
                   {employee.department}
                 </span>
@@ -71,7 +77,7 @@ export default async function EmployeeProfilePage({ params }: PageProps) {
             <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Details</h2>
             <div className="mt-4 space-y-3">
               <DetailRow label="Salary" value={formatCurrency(employee.salary)} />
-              <DetailRow label="Joined Date" value={formatDate(employee.createdAt)} />
+              <DetailRow label="Joined Date" value={formatDate(employee.joiningDate)} />
               <DetailRow label="Created Date" value={formatDate(employee.createdAt)} />
               <DetailRow label="Last Updated" value={formatDate(employee.updatedAt)} />
             </div>

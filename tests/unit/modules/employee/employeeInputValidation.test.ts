@@ -7,6 +7,9 @@ describe("Employee input validation", () => {
         fullName: "",
         jobTitle: "Engineer",
         country: "IN",
+        department: "Engineering",
+        gender: "Female",
+        joiningDate: "2024-01-01",
         salary: 100
       })
     ).toEqual({
@@ -21,6 +24,9 @@ describe("Employee input validation", () => {
         fullName: "Ada Lovelace",
         jobTitle: "",
         country: "IN",
+        department: "Engineering",
+        gender: "Female",
+        joiningDate: "2024-01-01",
         salary: 100
       })
     ).toEqual({
@@ -35,6 +41,9 @@ describe("Employee input validation", () => {
         fullName: "Ada Lovelace",
         jobTitle: "Engineer",
         country: "",
+        department: "Engineering",
+        gender: "Female",
+        joiningDate: "2024-01-01",
         salary: 100
       })
     ).toEqual({
@@ -49,6 +58,9 @@ describe("Employee input validation", () => {
         fullName: "Ada Lovelace",
         jobTitle: "Engineer",
         country: "IN",
+        department: "Engineering",
+        gender: "Female",
+        joiningDate: "2024-01-01",
         salary: 0
       })
     ).toEqual({
@@ -63,6 +75,9 @@ describe("Employee input validation", () => {
         fullName: "Ada Lovelace",
         jobTitle: "Engineer",
         country: "IN",
+        department: "Engineering",
+        gender: "Female",
+        joiningDate: "2024-01-01",
         salary: 100
       })
     ).toEqual({ ok: true, errors: {} });
@@ -74,6 +89,9 @@ describe("Employee input validation", () => {
         fullName: "   ",
         jobTitle: "   ",
         country: "   ",
+        department: "Engineering",
+        gender: "Female",
+        joiningDate: "2024-01-01",
         salary: 100
       })
     ).toEqual({
@@ -92,9 +110,46 @@ describe("Employee input validation", () => {
         fullName: "Ada Lovelace",
         jobTitle: "Engineer",
         country: "IN",
+        department: "Engineering",
+        gender: "Female",
+        joiningDate: "2024-01-01",
         salary: 49.99
       })
     ).toEqual({ ok: true, errors: {} });
+  });
+
+  it("fails when joiningDate is missing", () => {
+    expect(
+      validateEmployeeInput({
+        fullName: "Ada Lovelace",
+        jobTitle: "Engineer",
+        country: "IN",
+        department: "Engineering",
+        gender: "Female",
+        joiningDate: "",
+        salary: 100
+      })
+    ).toEqual({
+      ok: false,
+      errors: { joiningDate: "required" }
+    });
+  });
+
+  it("fails when joiningDate is invalid", () => {
+    expect(
+      validateEmployeeInput({
+        fullName: "Ada Lovelace",
+        jobTitle: "Engineer",
+        country: "IN",
+        department: "Engineering",
+        gender: "Female",
+        joiningDate: "not-a-date",
+        salary: 100
+      })
+    ).toEqual({
+      ok: false,
+      errors: { joiningDate: "invalid_date" }
+    });
   });
 });
 

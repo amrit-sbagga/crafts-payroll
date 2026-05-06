@@ -56,6 +56,9 @@ export async function POST(request: NextRequest) {
       jobTitle: String(body.jobTitle ?? ""),
       country: String(body.country ?? ""),
       department: String(body.department ?? "Engineering"),
+      gender: String(body.gender ?? "Other"),
+      joiningDate: String(body.joiningDate ?? ""),
+      avatarUrl: body.avatarUrl ? String(body.avatarUrl) : undefined,
       salary: Number(body.salary)
     };
 

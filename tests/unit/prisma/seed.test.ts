@@ -4,6 +4,7 @@ import {
   buildEmployeeRecord,
   COUNTRIES,
   DEPARTMENTS,
+  GENDERS,
   JOB_TITLES,
   SALARY_RANGES,
   pick,
@@ -37,6 +38,10 @@ describe("seed helpers", () => {
     expect(JOB_TITLES).toContain(employee.jobTitle);
     expect(COUNTRIES).toContain(employee.country);
     expect(DEPARTMENTS).toContain(employee.department);
+    expect(GENDERS).toContain(employee.gender);
+    expect(employee.joiningDate).toBeInstanceOf(Date);
+    expect(typeof employee.avatarUrl).toBe("string");
+    expect(employee.avatarUrl).toContain("dicebear.com");
 
     const [minSalary, maxSalary] = SALARY_RANGES[employee.country];
     expect(employee.salary).toBeGreaterThanOrEqual(minSalary);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import type { Employee, Department } from "@/types/employee";
+import type { Employee, Department, Gender } from "@/types/employee";
 
 type Props = {
   employee: Employee | null;
@@ -14,6 +14,9 @@ type FormState = {
   jobTitle: string;
   country: string;
   department: Department;
+  gender: Gender;
+  joiningDate: string;
+  avatarUrl: string;
   salary: string;
 };
 
@@ -28,6 +31,8 @@ const DEPARTMENTS: Department[] = [
   "Marketing"
 ];
 
+const GENDERS: Gender[] = ["Male", "Female", "Other"];
+
 export default function EmployeeFormModal({
   employee,
   onClose,
@@ -41,6 +46,9 @@ export default function EmployeeFormModal({
     jobTitle: employee?.jobTitle ?? "",
     country: employee?.country ?? "",
     department: employee?.department ?? "Engineering",
+    gender: employee?.gender ?? "Other",
+    joiningDate: employee?.joiningDate ? employee.joiningDate.slice(0, 10) : "",
+    avatarUrl: employee?.avatarUrl ?? "",
     salary: employee ? String(employee.salary) : ""
   });
 
@@ -197,6 +205,35 @@ export default function EmployeeFormModal({
               />
             </div>
 
+            {/* Gender + Joining Date */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <SelectField
+                label="Gender"
+                name="gender"
+                value={form.gender}
+                options={GENDERS}
+                onChange={handleChange}
+                error={errors.gender}
+              />
+              <Field
+                label="Joining Date"
+                name="joiningDate"
+                type="date"
+                value={form.joiningDate}
+                error={errors.joiningDate}
+                onChange={handleChange}
+              />
+            </div>
+
+            <Field
+              label="Avatar URL (optional)"
+              name="avatarUrl"
+              placeholder="https://..."
+              value={form.avatarUrl}
+              error={errors.avatarUrl}
+              onChange={handleChange}
+            />
+
             {/* Salary — full width */}
             <Field
               label="Salary"
@@ -306,13 +343,15 @@ const SelectField = function SelectField({
   name,
   value,
   options,
-  onChange
+  onChange,
+  error
 }: {
   label: string;
   name: string;
   value: string;
   options: string[];
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+  error?: string;
 }) {
   return (
     <div>
@@ -323,7 +362,11 @@ const SelectField = function SelectField({
         name={name}
         value={value}
         onChange={onChange}
-        className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:focus:border-blue-500 dark:focus:bg-gray-900 dark:focus:ring-blue-900/40"
+        className={`w-full rounded-lg border bg-gray-50 px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:bg-white focus:ring-2 dark:bg-gray-800 dark:text-gray-100 dark:focus:bg-gray-900 ${
+          error
+            ? "border-red-300 focus:border-red-400 focus:ring-red-100 dark:border-red-800 dark:focus:border-red-500 dark:focus:ring-red-900/40"
+            : "border-gray-200 focus:border-blue-400 focus:ring-blue-100 dark:border-gray-700 dark:focus:border-blue-500 dark:focus:ring-blue-900/40"
+        }`}
       >
         {options.map((option) => (
           <option key={option} value={option}>
@@ -331,6 +374,14 @@ const SelectField = function SelectField({
           </option>
         ))}
       </select>
+      {error && (
+        <p className="mt-1 flex items-center gap-1 text-xs text-red-500 dark:text-red-400">
+          <svg className="h-3.5 w-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5A.75.75 0 0 1 10 5Zm0 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clipRule="evenodd" />
+          </svg>
+          {error.replace(/_/g, " ")}
+        </p>
+      )}
     </div>
   );
 };

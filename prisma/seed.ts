@@ -35,6 +35,7 @@ export const DEPARTMENTS = [
   "Operations",
   "Marketing"
 ] as const;
+export const GENDERS = ["Male", "Female", "Other"] as const;
 
 export const SALARY_RANGES: Record<string, [number, number]> = {
   India: [500_000, 2_500_000],
@@ -63,11 +64,19 @@ export function loadLines(file: string): string[] {
 export function buildEmployeeRecord(firstNames: string[], lastNames: string[]) {
   const country = pick(COUNTRIES);
   const [minSalary, maxSalary] = SALARY_RANGES[country];
+  const firstName = pick(firstNames);
+  const lastName = pick(lastNames);
+  const joiningDate = new Date();
+  joiningDate.setDate(joiningDate.getDate() - randInt(30, 3650));
+
   return {
-    fullName: `${pick(firstNames)} ${pick(lastNames)}`,
+    fullName: `${firstName} ${lastName}`,
     jobTitle: pick(JOB_TITLES),
     country,
     department: pick(DEPARTMENTS),
+    gender: pick(GENDERS),
+    joiningDate,
+    avatarUrl: `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(`${firstName} ${lastName}`)}`,
     salary: randInt(minSalary, maxSalary)
   };
 }
