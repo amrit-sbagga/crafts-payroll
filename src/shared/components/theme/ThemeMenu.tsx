@@ -27,7 +27,7 @@ export default function ThemeMenu() {
   }, [open]);
 
   return (
-    <div ref={rootRef} className="relative">
+    <div ref={rootRef} className="relative z-90">
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
@@ -50,7 +50,7 @@ export default function ThemeMenu() {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 z-50 mt-2 w-64 rounded-xl border border-gray-200 bg-white p-3 shadow-xl dark:border-gray-700 dark:bg-gray-900"
+          className="absolute right-0 z-100 mt-2 w-64 rounded-xl border border-gray-200 bg-white p-3 shadow-xl dark:border-gray-700 dark:bg-gray-900"
         >
           <SectionLabel title="Theme" />
           <OptionButton active={themeMode === ThemeMode.Light} label="Light" onClick={() => setThemeMode(ThemeMode.Light)} />
