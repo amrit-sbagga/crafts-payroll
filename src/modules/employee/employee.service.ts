@@ -51,7 +51,9 @@ export async function listEmployees({
       fullName: { contains: search, mode: Prisma.QueryMode.insensitive }
     }),
     ...(country && { country }),
-    ...(jobTitle && { jobTitle })
+    ...(jobTitle && {
+      jobTitle: { contains: jobTitle, mode: Prisma.QueryMode.insensitive }
+    })
   };
 
   const [total, employees] = await Promise.all([
