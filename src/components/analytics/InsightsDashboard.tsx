@@ -287,56 +287,94 @@ export default function InsightsDashboard() {
           <SectionLabel>Country Analysis</SectionLabel>
 
           <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-            <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+            {/* Card header */}
+            <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5">
               <div>
-                <h2 className="text-sm font-semibold text-gray-900">
+                <h2 className="text-base font-semibold text-gray-900">
                   Country Salary Overview
                 </h2>
                 <p className="mt-0.5 text-xs text-gray-400">
-                  Min, max and average salary breakdown per country
+                  Salary distribution across countries
                 </p>
               </div>
               {!countryLoading && (
-                <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-500">
+                <span className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600">
                   {countrySalaries.length} countries
                 </span>
               )}
             </div>
 
-            <div className="px-6 py-2">
+            {/* Table */}
+            <div className="px-2">
               {countryError ? (
-                <div className="py-4">
+                <div className="p-6">
                   <ErrorState message="Failed to load country salary data." />
                 </div>
               ) : (
                 <table className="min-w-full text-sm">
                   <thead>
-                    <tr className="border-b border-gray-100">
-                      <th className="py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">Country</th>
-                      <th className="py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">Min</th>
-                      <th className="py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">Max</th>
-                      <th className="py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">Avg Salary</th>
-                      <th className="py-3 pl-6 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">Relative</th>
+                    <tr className="border-b border-gray-100 bg-gray-50/60">
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">
+                        Country
+                      </th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">
+                        Min Salary
+                      </th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">
+                        Max Salary
+                      </th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">
+                        Avg Salary
+                      </th>
+                      <th className="px-4 py-3 pl-6 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">
+                        Spread
+                      </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-50">
+                  <tbody>
                     {countryLoading ? (
                       <RowSkeleton cols={5} />
                     ) : (
-                      countrySalaries.map(row => (
-                        <tr key={row.country} className="group hover:bg-blue-50/20 transition-colors">
-                          <td className="py-4">
+                      countrySalaries.map((row, i) => (
+                        <tr
+                          key={row.country}
+                          className={`group border-b border-gray-50 transition-colors duration-150 last:border-0 hover:bg-blue-50/30 ${
+                            i % 2 === 0 ? "bg-white" : "bg-gray-50/30"
+                          }`}
+                        >
+                          {/* Country pill */}
+                          <td className="px-4 py-4">
                             <div className="flex items-center gap-2.5">
-                              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-gray-100 text-xs font-bold text-gray-600">
+                              <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-xs font-bold text-blue-700">
                                 {row.country.charAt(0)}
                               </span>
-                              <span className="font-semibold text-gray-900">{row.country}</span>
+                              <span className="font-semibold text-gray-900">
+                                {row.country}
+                              </span>
                             </div>
                           </td>
-                          <td className="py-4 text-right tabular-nums text-gray-500">{fmt(row.minSalary)}</td>
-                          <td className="py-4 text-right tabular-nums text-gray-500">{fmt(row.maxSalary)}</td>
-                          <td className="py-4 text-right font-semibold tabular-nums text-blue-700">{fmt(row.avgSalary)}</td>
-                          <td className="py-4 pl-6">
+
+                          {/* Min — muted green */}
+                          <td className="px-4 py-4 text-right tabular-nums">
+                            <span className="rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                              {fmt(row.minSalary)}
+                            </span>
+                          </td>
+
+                          {/* Max — muted amber */}
+                          <td className="px-4 py-4 text-right tabular-nums">
+                            <span className="rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
+                              {fmt(row.maxSalary)}
+                            </span>
+                          </td>
+
+                          {/* Avg — bold blue */}
+                          <td className="px-4 py-4 text-right font-bold tabular-nums text-blue-700">
+                            {fmt(row.avgSalary)}
+                          </td>
+
+                          {/* Salary bar */}
+                          <td className="px-4 py-4 pl-6">
                             <SalaryBar value={row.avgSalary} max={maxCountryAvg} color="bg-blue-500" />
                           </td>
                         </tr>
