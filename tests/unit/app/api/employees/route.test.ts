@@ -49,7 +49,9 @@ describe("/api/employees route handlers", () => {
       limit: 5,
       search: "Ada",
       country: "India",
-      jobTitle: "Engineer"
+      jobTitle: "Engineer",
+      sortBy: "createdAt",
+      sortOrder: "desc"
     });
     expect(json).toEqual({
       data: [{ id: "1", fullName: "Ada", salary: 1000 }],

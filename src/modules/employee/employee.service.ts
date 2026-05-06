@@ -8,6 +8,8 @@ export type ListEmployeesParams = {
   search?: string;
   country?: string;
   jobTitle?: string;
+  sortBy?: "fullName" | "jobTitle" | "country" | "department" | "salary" | "createdAt";
+  sortOrder?: "asc" | "desc";
 };
 
 // Prisma returns Decimal for salary — convert to number for JSON serialisation.
@@ -25,7 +27,9 @@ export async function listEmployees({
   limit = 20,
   search,
   country,
-  jobTitle
+  jobTitle,
+  sortBy = "createdAt",
+  sortOrder = "desc"
 }: ListEmployeesParams) {
   const safeLimit = Math.min(limit, 100);
   const skip = (page - 1) * safeLimit;
@@ -44,7 +48,7 @@ export async function listEmployees({
       where,
       skip,
       take: safeLimit,
-      orderBy: { createdAt: "desc" }
+      orderBy: { [sortBy]: sortOrder }
     })
   ]);
 

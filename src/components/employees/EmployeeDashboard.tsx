@@ -35,6 +35,9 @@ type PayrollReport = {
   createdAt: string;
 };
 
+type SortField = "fullName" | "jobTitle" | "country" | "department" | "salary" | "createdAt";
+type SortOrder = "asc" | "desc";
+
 // ─── Delete confirmation modal ────────────────────────────────────────────────
 
 function DeleteConfirmModal({
@@ -307,6 +310,10 @@ function TableSkeleton() {
           <td className="px-5 py-4 text-right">
             <div className="ml-auto h-3.5 w-20 rounded bg-gray-100 dark:bg-gray-800" />
           </td>
+          {/* Created date */}
+          <td className="px-5 py-4">
+            <div className="h-3.5 w-24 rounded bg-gray-100 dark:bg-gray-800" />
+          </td>
           {/* Actions */}
           <td className="px-5 py-4">
             <div className="ml-auto flex justify-end gap-1.5">
@@ -325,7 +332,7 @@ function TableSkeleton() {
 function EmptyState({ hasFilters }: { hasFilters: boolean }) {
   return (
     <tr>
-      <td colSpan={6}>
+      <td colSpan={7}>
         <div className="flex flex-col items-center py-14 text-center">
           <svg
             className="mb-3 h-10 w-10 text-gray-300 dark:text-gray-600"
@@ -359,11 +366,13 @@ function EmptyState({ hasFilters }: { hasFilters: boolean }) {
 function Pagination({
   meta,
   page,
-  onPageChange
+  onPageChange,
+  onLimitChange
 }: {
   meta: EmployeeMeta;
   page: number;
   onPageChange: (p: number) => void;
+  onLimitChange: (limit: number) => void;
 }) {
   const { total, totalPages, limit } = meta;
   if (total === 0) return null;
@@ -371,16 +380,52 @@ function Pagination({
   const from = (page - 1) * limit + 1;
   const to = Math.min(page * limit, total);
 
+  function clampPage(next: number) {
+    if (totalPages === 0) return 1;
+    return Math.min(Math.max(1, next), totalPages);
+  }
+
   return (
-    <div className="mt-4 flex flex-col gap-3 text-sm text-gray-600 sm:flex-row sm:items-center sm:justify-between dark:text-gray-300">
+    <div className="mt-4 flex flex-col gap-3 text-sm text-gray-600 lg:flex-row lg:items-center lg:justify-between dark:text-gray-300">
       <span className="text-xs text-gray-500 dark:text-gray-400">
-        Showing <span className="font-medium text-gray-700 dark:text-gray-200">{from}–{to}</span> of{" "}
+        Showing <span className="font-medium text-gray-700 dark:text-gray-200">{from}-{to}</span> of{" "}
         <span className="font-medium text-gray-700 dark:text-gray-200">{total.toLocaleString()}</span>{" "}
         employee{total !== 1 ? "s" : ""}
       </span>
 
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+        <label className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+          Rows per page
+          <select
+            value={limit}
+            onChange={(e) => onLimitChange(Number(e.target.value))}
+            className="rounded-md border border-gray-300 bg-white px-2 py-1 text-xs text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
+          >
+            {[10, 20, 50, 100].map((size) => (
+              <option key={size} value={size}>
+                {size}
+              </option>
+            ))}
+          </select>
+        </label>
+        {totalPages > 1 && (
+          <label className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+            Page
+            <input
+              type="number"
+              min={1}
+              max={totalPages}
+              value={page}
+              onChange={(e) => onPageChange(clampPage(Number(e.target.value) || 1))}
+              className="w-16 rounded-md border border-gray-300 bg-white px-2 py-1 text-xs text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
+            />
+            <span>of {totalPages}</span>
+          </label>
+        )}
+      </div>
+
       {totalPages > 1 && (
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 self-start sm:self-auto">
           <button
             disabled={page <= 1}
             onClick={() => onPageChange(page - 1)}
@@ -389,8 +434,8 @@ function Pagination({
             ← Prev
           </button>
 
-          <span className="px-3 py-1.5 text-xs text-gray-500 dark:text-gray-400">
-            Page {page} of {totalPages}
+          <span className="px-2 py-1.5 text-xs text-gray-500 dark:text-gray-400">
+            {page}/{totalPages}
           </span>
 
           <button
@@ -417,7 +462,10 @@ export default function EmployeeDashboard() {
   const [search, setSearch] = useState("");
   const [country, setCountry] = useState("");
   const [jobTitle, setJobTitle] = useState("");
+  const [limit, setLimit] = useState(20);
   const [page, setPage] = useState(1);
+  const [sortBy, setSortBy] = useState<SortField>("createdAt");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
@@ -439,7 +487,12 @@ export default function EmployeeDashboard() {
     setLoading(true);
     setLoadError(null);
 
-    const params = new URLSearchParams({ page: String(page), limit: "20" });
+    const params = new URLSearchParams({
+      page: String(page),
+      limit: String(limit),
+      sortBy,
+      sortOrder
+    });
     if (search) params.set("search", search);
     if (country) params.set("country", country);
     if (jobTitle) params.set("jobTitle", jobTitle);
@@ -463,7 +516,7 @@ export default function EmployeeDashboard() {
       });
 
     return () => controller.abort();
-  }, [search, country, jobTitle, page, refreshKey]);
+  }, [search, country, jobTitle, page, limit, sortBy, sortOrder, refreshKey]);
 
   function handleFilterChange(
     setter: React.Dispatch<React.SetStateAction<string>>
@@ -472,6 +525,16 @@ export default function EmployeeDashboard() {
       setter(e.target.value);
       setPage(1);
     };
+  }
+
+  function handleSort(column: SortField) {
+    if (sortBy === column) {
+      setSortOrder((current) => (current === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(column);
+      setSortOrder(column === "createdAt" ? "desc" : "asc");
+    }
+    setPage(1);
   }
 
   async function handleDeleteConfirmed() {
@@ -652,24 +715,37 @@ export default function EmployeeDashboard() {
           </div>
 
           <div className="overflow-x-auto">
-          <table className="min-w-[900px] w-full text-sm">
+          <table className="min-w-[1020px] w-full text-sm">
             <thead className="sticky top-0 z-10">
               <tr className="border-b border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-900">
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
-                  Full Name
-                </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
-                  Job Title
-                </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
-                  Department
-                </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
-                  Country
-                </th>
-                <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
-                  Salary
-                </th>
+                {[
+                  ["fullName", "Full Name", "left"],
+                  ["jobTitle", "Job Title", "left"],
+                  ["department", "Department", "left"],
+                  ["country", "Country", "left"],
+                  ["salary", "Salary", "right"],
+                  ["createdAt", "Created Date", "left"]
+                ].map(([field, label, align]) => (
+                  <th
+                    key={String(field)}
+                    className={`px-5 py-3 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 ${
+                      align === "right" ? "text-right" : "text-left"
+                    }`}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => handleSort(field as SortField)}
+                      className={`inline-flex items-center gap-1 transition-colors hover:text-gray-600 dark:hover:text-gray-300 ${
+                        align === "right" ? "ml-auto" : ""
+                      }`}
+                    >
+                      <span>{label}</span>
+                      <span className="text-[10px]">
+                        {sortBy === field ? (sortOrder === "asc" ? "▲" : "▼") : "↕"}
+                      </span>
+                    </button>
+                  </th>
+                ))}
                 <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
                   Actions
                 </th>
@@ -727,6 +803,16 @@ export default function EmployeeDashboard() {
                       </span>
                     </td>
 
+                    <td className="px-5 py-4">
+                      <span className="text-xs text-gray-600 dark:text-gray-300">
+                        {new Date(emp.createdAt).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric"
+                        })}
+                      </span>
+                    </td>
+
                     {/* Actions — always visible, color on hover */}
                     <td className="px-5 py-4">
                       <div className="flex items-center justify-end gap-1">
@@ -759,7 +845,15 @@ export default function EmployeeDashboard() {
 
           {/* Pagination inside card footer */}
           <div className="border-t border-gray-100 px-5 py-3 dark:border-gray-800">
-            <Pagination meta={meta} page={page} onPageChange={setPage} />
+            <Pagination
+              meta={meta}
+              page={page}
+              onPageChange={setPage}
+              onLimitChange={(nextLimit) => {
+                setLimit(nextLimit);
+                setPage(1);
+              }}
+            />
           </div>
         </div>
 

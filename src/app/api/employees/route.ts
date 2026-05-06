@@ -14,8 +14,29 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search") ?? undefined;
     const country = searchParams.get("country") ?? undefined;
     const jobTitle = searchParams.get("jobTitle") ?? undefined;
+    const rawSortBy = searchParams.get("sortBy");
+    const rawSortOrder = searchParams.get("sortOrder");
 
-    const result = await listEmployees({ page, limit, search, country, jobTitle });
+    const allowedSortBy = new Set([
+      "fullName",
+      "jobTitle",
+      "country",
+      "department",
+      "salary",
+      "createdAt"
+    ]);
+    const sortBy = allowedSortBy.has(rawSortBy ?? "") ? (rawSortBy as "fullName" | "jobTitle" | "country" | "department" | "salary" | "createdAt") : "createdAt";
+    const sortOrder = rawSortOrder === "asc" ? "asc" : "desc";
+
+    const result = await listEmployees({
+      page,
+      limit,
+      search,
+      country,
+      jobTitle,
+      sortBy,
+      sortOrder
+    });
 
     return NextResponse.json(result);
   } catch {
