@@ -105,6 +105,28 @@ export default function useEmployees() {
     [handleSort, resetPage]
   );
 
+  const addEmployeeLocally = useCallback((employee: Employee) => {
+    setEmployees(prev => {
+      return [employee, ...prev];
+    });
+    setMeta(prev => ({ ...prev, total: prev.total + 1 }));
+  }, []);
+
+  const updateEmployeeLocally = useCallback((employee: Employee) => {
+    setEmployees(prev => {
+      const existingIndex = prev.findIndex(item => item.id === employee.id);
+      if (existingIndex < 0) return prev;
+      const next = [...prev];
+      next[existingIndex] = employee;
+      return next;
+    });
+  }, []);
+
+  const removeEmployeeById = useCallback((id: string) => {
+    setEmployees(prev => prev.filter(item => item.id !== id));
+    setMeta(prev => ({ ...prev, total: Math.max(0, prev.total - 1) }));
+  }, []);
+
   return {
     employees,
     meta,
@@ -126,5 +148,9 @@ export default function useEmployees() {
     updateCountry,
     updateJobTitle,
     clearFilters
+    ,
+    addEmployeeLocally,
+    updateEmployeeLocally,
+    removeEmployeeById
   };
 }

@@ -64,7 +64,7 @@ export default function EmployeeDataTable({
         </tr>
       </thead>
       <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-        {loading ? (
+        {loading && employees.length === 0 ? (
           <TableSkeleton />
         ) : employees.length === 0 ? (
           <tr>

@@ -12,7 +12,8 @@ export async function fetchEmployees(query: URLSearchParams, signal?: AbortSigna
 }
 
 export async function deleteEmployeeById(id: string) {
-  await fetch(`/api/employees/${id}`, { method: "DELETE" });
+  const response = await fetch(`/api/employees/${id}`, { method: "DELETE" });
+  if (!response.ok) throw new Error("Failed to delete employee");
 }
 
 export async function runPayroll(month: number, year: number) {

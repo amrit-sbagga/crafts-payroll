@@ -6,7 +6,7 @@ import type { Employee, Department, Gender } from "@/types/employee";
 type Props = {
   employee: Employee | null;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (employee: Employee) => void;
 };
 
 type FormState = {
@@ -92,7 +92,8 @@ export default function EmployeeFormModal({
       });
 
       if (res.ok) {
-        onSuccess();
+        const json = await res.json();
+        onSuccess(json.data);
         return;
       }
 

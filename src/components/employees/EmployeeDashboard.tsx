@@ -33,7 +33,10 @@ export default function EmployeeDashboard() {
     updateSearch,
     updateCountry,
     updateJobTitle,
-    clearFilters
+    clearFilters,
+    addEmployeeLocally,
+    updateEmployeeLocally,
+    removeEmployeeById
   } = useEmployees();
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -48,18 +51,34 @@ export default function EmployeeDashboard() {
 
   async function handleDeleteConfirmed() {
     if (!deletingEmployee) return;
-    await deleteEmployeeById(deletingEmployee.id);
+    const deletingId = deletingEmployee.id;
     setDeletingEmployee(null);
-    if (employees.length === 1 && page > 1) {
-      setPage(p => p - 1);
-    } else {
+    const shouldGoPrevPage = employees.length === 1 && page > 1;
+
+    removeEmployeeById(deletingId);
+
+    try {
+      await deleteEmployeeById(deletingId);
+      if (shouldGoPrevPage) {
+        setPage(p => p - 1);
+      } else {
+        refresh();
+      }
+    } catch {
+      // Re-sync from server if optimistic delete fails.
       refresh();
     }
   }
 
-  function handleModalSuccess() {
+  function handleModalSuccess(savedEmployee: Employee) {
+    const wasEditing = editingEmployee !== null;
     setModalOpen(false);
     setEditingEmployee(null);
+    if (wasEditing) {
+      updateEmployeeLocally(savedEmployee);
+    } else {
+      addEmployeeLocally(savedEmployee);
+    }
     refresh();
   }
 
@@ -124,11 +143,16 @@ export default function EmployeeDashboard() {
                 <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">
                   Employee Records
                 </p>
-                {!loading && meta.total > 0 && (
-                  <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300">
-                    {meta.total.toLocaleString()} total
-                  </span>
-                )}
+                <div className="flex items-center gap-2">
+                  {loading && employees.length > 0 && (
+                    <span className="text-xs text-gray-500 dark:text-gray-400">Refreshing...</span>
+                  )}
+                  {!loading && meta.total > 0 && (
+                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                      {meta.total.toLocaleString()} total
+                    </span>
+                  )}
+                </div>
               </div>
 
               <div className="flex-1 overflow-auto pr-1">
