@@ -237,76 +237,124 @@ export default function EmployeeDashboard() {
 
   const hasFilters = Boolean(search || country || jobTitle);
 
+  // Stats derived from already-fetched data — no extra API calls.
+  const avgSalary =
+    employees.length > 0
+      ? Math.round(
+          employees.reduce((sum, e) => sum + e.salary, 0) / employees.length
+        )
+      : 0;
+  const countriesOnPage = new Set(employees.map(e => e.country)).size;
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Page header */}
-      <header className="border-b border-gray-200 bg-white px-6 py-4 shadow-sm">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
+      {/* ── Page header ── */}
+      <header className="border-b border-gray-200 bg-white">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Employees</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+              Employees
+            </h1>
             <p className="mt-0.5 text-sm text-gray-500">
-              Manage your team and salary records
+              Manage your workforce efficiently
             </p>
           </div>
           <button
             onClick={() => { setEditingEmployee(null); setModalOpen(true); }}
-            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+            className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 active:bg-blue-800 transition-colors"
           >
-            + Add Employee
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            Add Employee
           </button>
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-6 py-6">
-        {/* Filter bar */}
-        <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <div>
-            <label className="mb-1 block text-xs font-medium text-gray-500 uppercase tracking-wide">
-              Search by name
-            </label>
-            <input
-              type="text"
+      <main className="mx-auto max-w-7xl px-6 py-8 space-y-6">
+
+        {/* ── Stats summary row ── */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <StatCard
+            icon={
+              <svg className="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+              </svg>
+            }
+            iconBg="bg-blue-50"
+            label="Total Employees"
+            value={loading ? "—" : meta.total.toLocaleString()}
+          />
+          <StatCard
+            icon={
+              <svg className="h-5 w-5 text-emerald-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+              </svg>
+            }
+            iconBg="bg-emerald-50"
+            label="Avg Salary (this page)"
+            value={loading ? "—" : avgSalary.toLocaleString()}
+          />
+          <StatCard
+            icon={
+              <svg className="h-5 w-5 text-violet-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418" />
+              </svg>
+            }
+            iconBg="bg-violet-50"
+            label="Countries (this page)"
+            value={loading ? "—" : String(countriesOnPage)}
+          />
+        </div>
+
+        {/* ── Filter card ── */}
+        <div className="rounded-xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
+            Filter & Search
+          </p>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <FilterInput
+              label="Employee name"
               placeholder="e.g. Ada Lovelace"
               value={search}
               onChange={handleFilterChange(setSearch)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
             />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium text-gray-500 uppercase tracking-wide">
-              Filter by country
-            </label>
-            <input
-              type="text"
+            <FilterInput
+              label="Country"
               placeholder="e.g. India"
               value={country}
               onChange={handleFilterChange(setCountry)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
             />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium text-gray-500 uppercase tracking-wide">
-              Filter by job title
-            </label>
-            <input
-              type="text"
+            <FilterInput
+              label="Job title"
               placeholder="e.g. Engineer"
               value={jobTitle}
               onChange={handleFilterChange(setJobTitle)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
             />
           </div>
         </div>
 
-        {/* Table */}
-        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+        {/* ── Table card ── */}
+        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+          {/* Card header */}
+          <div className="flex items-center justify-between border-b border-gray-100 px-5 py-3.5">
+            <p className="text-sm font-semibold text-gray-700">
+              Employee Records
+            </p>
+            {!loading && meta.total > 0 && (
+              <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">
+                {meta.total.toLocaleString()} total
+              </span>
+            )}
+          </div>
+
           <table className="min-w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-200 bg-gray-50">
+              <tr className="border-b border-gray-100 bg-gray-50/60">
                 {["Full Name", "Job Title", "Country", "Salary", "Actions"].map(h => (
                   <th
                     key={h}
-                    className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
+                    className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400"
                   >
                     {h}
                   </th>
@@ -320,26 +368,26 @@ export default function EmployeeDashboard() {
                 <EmptyState hasFilters={hasFilters} />
               ) : (
                 employees.map(emp => (
-                  <tr key={emp.id} className="hover:bg-blue-50/30 transition-colors">
-                    <td className="px-4 py-3.5 font-medium text-gray-900">
-                      {emp.fullName}
+                  <tr key={emp.id} className="group hover:bg-blue-50/20 transition-colors">
+                    <td className="px-5 py-3.5">
+                      <span className="font-semibold text-gray-900">
+                        {emp.fullName}
+                      </span>
                     </td>
-                    <td className="px-4 py-3.5 text-gray-600">{emp.jobTitle}</td>
-                    <td className="px-4 py-3.5">
-                      <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">
+                    <td className="px-5 py-3.5 text-gray-500">{emp.jobTitle}</td>
+                    <td className="px-5 py-3.5">
+                      <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700">
                         {emp.country}
                       </span>
                     </td>
-                    <td className="px-4 py-3.5 font-medium text-gray-800">
-                      {emp.salary.toLocaleString("en-US", {
-                        maximumFractionDigits: 0
-                      })}
+                    <td className="px-5 py-3.5 font-semibold tabular-nums text-gray-800">
+                      {emp.salary.toLocaleString("en-US", { maximumFractionDigits: 0 })}
                     </td>
-                    <td className="px-4 py-3.5">
-                      <div className="flex gap-1">
+                    <td className="px-5 py-3.5">
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={() => { setEditingEmployee(emp); setModalOpen(true); }}
-                          className="rounded-md px-2.5 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 transition-colors"
+                          className="rounded-md px-2.5 py-1 text-xs font-medium text-blue-600 hover:bg-blue-100 transition-colors"
                         >
                           Edit
                         </button>
@@ -356,12 +404,15 @@ export default function EmployeeDashboard() {
               )}
             </tbody>
           </table>
+
+          {/* Pagination inside card footer */}
+          <div className="border-t border-gray-100 px-5 py-3">
+            <Pagination meta={meta} page={page} onPageChange={setPage} />
+          </div>
         </div>
 
-        <Pagination meta={meta} page={page} onPageChange={setPage} />
       </main>
 
-      {/* Add / Edit modal */}
       {modalOpen && (
         <EmployeeFormModal
           employee={editingEmployee}
@@ -370,7 +421,6 @@ export default function EmployeeDashboard() {
         />
       )}
 
-      {/* Delete confirmation modal */}
       {deletingEmployee && (
         <DeleteConfirmModal
           employeeName={deletingEmployee.fullName}
@@ -378,6 +428,59 @@ export default function EmployeeDashboard() {
           onCancel={() => setDeletingEmployee(null)}
         />
       )}
+    </div>
+  );
+}
+
+// ─── Reusable sub-components ──────────────────────────────────────────────────
+
+function StatCard({
+  icon,
+  iconBg,
+  label,
+  value
+}: {
+  icon: React.ReactNode;
+  iconBg: string;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
+      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${iconBg}`}>
+        {icon}
+      </div>
+      <div>
+        <p className="text-xs font-medium text-gray-400">{label}</p>
+        <p className="mt-0.5 text-xl font-bold tabular-nums text-gray-900">{value}</p>
+      </div>
+    </div>
+  );
+}
+
+function FilterInput({
+  label,
+  placeholder,
+  value,
+  onChange
+}: {
+  label: string;
+  placeholder: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}) {
+  return (
+    <div>
+      <label className="mb-1.5 block text-xs font-medium text-gray-600">
+        {label}
+      </label>
+      <input
+        type="text"
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+        className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100"
+      />
     </div>
   );
 }
