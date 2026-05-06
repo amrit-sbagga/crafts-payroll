@@ -18,7 +18,12 @@
     "test:unit:ci": "jest -c jest.config.cjs --testPathPatterns=tests/unit --ci --runInBand --coverage --coverageDirectory=coverage/unit",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "seed": "tsx prisma/seed.ts",
+    "seed:clean": "tsx prisma/seed.ts --clean"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "latest",
@@ -48,8 +53,9 @@
     "prettier": "latest",
     "prisma": "latest",
     "tailwindcss": "latest",
-    "ts-node": "latest",
     "ts-jest": "latest",
+    "ts-node": "latest",
+    "tsx": "^4.21.0",
     "typescript": "latest"
   }
 }
