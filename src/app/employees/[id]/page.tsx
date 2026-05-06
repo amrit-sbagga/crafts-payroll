@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getEmployeeById } from "@/modules/employee/employee.service";
 import { prisma } from "@/lib/prisma";
@@ -8,7 +9,7 @@ type PageProps = {
   params: Promise<{ id: string }>;
 };
 
-function daysSince(dateValue: string) {
+function daysSince(dateValue: string | Date) {
   const then = new Date(dateValue).getTime();
   const now = Date.now();
   const diff = Math.max(0, now - then);
@@ -44,13 +45,16 @@ export default async function EmployeeProfilePage({ params }: PageProps) {
 
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
             <div className="h-20 w-20 overflow-hidden rounded-2xl border border-gray-200 bg-linear-to-br from-blue-100 to-indigo-100 dark:border-gray-700 dark:from-blue-950/30 dark:to-indigo-950/30">
-              <img
+              <Image
                 src={
                   employee.avatarUrl ??
                   `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(employee.fullName)}`
                 }
                 alt={`${employee.fullName} avatar`}
                 className="h-full w-full object-cover"
+                width={80}
+                height={80}
+                unoptimized
               />
             </div>
 

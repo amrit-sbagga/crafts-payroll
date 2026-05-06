@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Department, Gender, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import type { EmployeeInput } from "./domain/validateEmployeeInput";
 
@@ -24,12 +24,32 @@ function normalizeJoiningDate(value: string) {
   return value;
 }
 
+function toDepartment(value: string): Department {
+  const departments = Object.values(Department);
+  return departments.includes(value as Department) ? (value as Department) : Department.Engineering;
+}
+
+function toGender(value: string): Gender {
+  const genders = Object.values(Gender);
+  return genders.includes(value as Gender) ? (value as Gender) : Gender.Male;
+}
+
+function toEmployeeCreateData(data: EmployeeInput): Prisma.EmployeeCreateInput {
+  return {
+    fullName: data.fullName,
+    jobTitle: data.jobTitle,
+    country: data.country,
+    department: toDepartment(data.department),
+    gender: toGender(data.gender),
+    joiningDate: normalizeJoiningDate(data.joiningDate),
+    avatarUrl: data.avatarUrl,
+    salary: data.salary
+  };
+}
+
 export async function createEmployee(data: EmployeeInput) {
   const employee = await prisma.employee.create({
-    data: {
-      ...data,
-      joiningDate: normalizeJoiningDate(data.joiningDate)
-    }
+    data: toEmployeeCreateData(data)
   });
   return serialize(employee);
 }
@@ -85,10 +105,7 @@ export async function getEmployeeById(id: string) {
 export async function updateEmployee(id: string, data: EmployeeInput) {
   const employee = await prisma.employee.update({
     where: { id },
-    data: {
-      ...data,
-      joiningDate: normalizeJoiningDate(data.joiningDate)
-    }
+    data: toEmployeeCreateData(data)
   });
   return serialize(employee);
 }
