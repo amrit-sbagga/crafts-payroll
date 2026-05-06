@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Employee } from "@/types/employee";
 import DataTable from "@/shared/components/DataTable";
 import EmptyState from "@/shared/components/EmptyState";
@@ -57,7 +58,7 @@ export default function EmployeeDataTable({
               </button>
             </th>
           ))}
-          <th className="w-[120px] min-w-[120px] px-5 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+          <th className="w-[160px] min-w-[160px] px-5 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
             Actions
           </th>
         </tr>
@@ -133,8 +134,18 @@ export default function EmployeeDataTable({
                 <span className="text-xs text-gray-600 dark:text-gray-300">{formatDate(emp.createdAt)}</span>
               </td>
 
-              <td className="w-[120px] min-w-[120px] px-5 py-4">
+              <td className="w-[160px] min-w-[160px] px-5 py-4">
                 <div className="flex items-center justify-end gap-1">
+                  <Link
+                    title="View profile"
+                    href={`/employees/${emp.id}`}
+                    className="rounded-lg p-1.5 text-gray-300 transition-all duration-150 hover:bg-indigo-50 hover:text-indigo-600 active:scale-90 dark:text-gray-500 dark:hover:bg-indigo-950/30 dark:hover:text-indigo-300"
+                  >
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12s3.75-7.5 9.75-7.5 9.75 7.5 9.75 7.5-3.75 7.5-9.75 7.5S2.25 12 2.25 12Z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </Link>
                   <button
                     title="Edit employee"
                     onClick={() => onEdit(emp)}
