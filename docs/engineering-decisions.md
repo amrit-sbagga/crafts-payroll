@@ -32,3 +32,12 @@ Used Next.js route handlers to ship full-stack features quickly with lower opera
 Prisma provides typed database access and clean migrations.
 
 Server-side pagination and filtering were chosen for performance with large employee datasets.
+
+## Local Development Prerequisite
+
+Before running the app locally, apply Prisma migrations so the database schema matches the code:
+
+- `npx prisma migrate deploy`
+- `npm run dev`
+
+If migrations are skipped, APIs can fail with runtime errors like missing columns (for example, `Employee.department`).
