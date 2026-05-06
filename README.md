@@ -144,6 +144,43 @@ All generated output was manually reviewed, validated, and refined before integr
 
 ## 10. Demo / Deployment
 
-- Live Demo: <<TODO>>
-- Demo Video: <<TODO>>
+- Live Demo: [https://crafts-payroll.vercel.app/](https://crafts-payroll.vercel.app/)
+
+## 11. One-Click Seed Endpoint
+
+For production/staging convenience, a protected seed API is available:
+
+- Route: `POST /api/admin/seed`
+- Auth: provide secret token in either:
+  - `Authorization: Bearer <SEED_API_TOKEN>`, or
+  - `x-seed-token: <SEED_API_TOKEN>`
+
+### Environment setup
+
+Set this env var in Vercel and local `.env`:
+
+```env
+SEED_API_TOKEN="<long-random-secret>"
+```
+
+### Request body
+
+```json
+{
+  "count": 1000,
+  "clean": false
+}
+```
+
+- `count`: number of records to insert (1 to 10,000, defaults to 1,000)
+- `clean`: if `true`, deletes existing employee records first
+
+### Example cURL
+
+```bash
+curl -X POST "https://crafts-payroll.vercel.app/api/admin/seed" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <SEED_API_TOKEN>" \
+  -d '{"count":1000,"clean":false}'
+```
 
