@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import dynamic from "next/dynamic";
 import type {
   CountrySalaryStats,
@@ -523,6 +524,20 @@ export default function InsightsDashboard() {
     { id: "distribution", label: "Salary Distribution" },
     { id: "reports", label: "Reports" },
   ];
+  const activeTabIndex = tabs.findIndex((tab) => tab.id === activeTab);
+
+  function onTabsKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
+    if (event.key !== "ArrowRight" && event.key !== "ArrowLeft" && event.key !== "Home" && event.key !== "End") {
+      return;
+    }
+    event.preventDefault();
+    let nextIndex = activeTabIndex;
+    if (event.key === "ArrowRight") nextIndex = (activeTabIndex + 1) % tabs.length;
+    if (event.key === "ArrowLeft") nextIndex = (activeTabIndex - 1 + tabs.length) % tabs.length;
+    if (event.key === "Home") nextIndex = 0;
+    if (event.key === "End") nextIndex = tabs.length - 1;
+    setActiveTab(tabs[nextIndex].id);
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 transition-colors duration-300 dark:bg-gray-950 dark:text-gray-100">
@@ -581,19 +596,30 @@ export default function InsightsDashboard() {
       </header>
 
       <main className="mx-auto max-w-[1500px] space-y-5 px-4 py-6 pb-12 sm:px-6 sm:py-8">
-        <section className="rounded-2xl border border-gray-200 bg-white p-1 shadow-sm dark:border-gray-800 dark:bg-gray-900/90">
-          <div className="flex flex-wrap gap-1.5">
-            {tabs.map((tab) => (
+        <section className="sticky top-2 z-20 rounded-2xl border border-gray-200 bg-white/95 p-1 shadow-sm backdrop-blur dark:border-gray-800 dark:bg-gray-900/90">
+          <div
+            className="flex flex-wrap gap-1.5"
+            role="tablist"
+            aria-label="Insights analytics sections"
+            onKeyDown={onTabsKeyDown}
+          >
+            {tabs.map((tab, index) => (
               <button
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`rounded-xl px-3 py-2 text-sm font-semibold transition-colors ${
+                role="tab"
+                id={`insights-tab-${tab.id}`}
+                aria-controls={`insights-panel-${tab.id}`}
+                aria-selected={activeTab === tab.id}
+                tabIndex={activeTab === tab.id ? 0 : -1}
+                className={`rounded-xl px-3 py-2 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${
                   activeTab === tab.id
-                    ? "bg-blue-600 text-white shadow-sm"
+                    ? "bg-blue-600 text-white shadow-sm ring-1 ring-blue-500/40"
                     : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
                 }`}
               >
+                <span className="mr-1.5 text-[11px] opacity-70">{index + 1}.</span>
                 {tab.label}
               </button>
             ))}
@@ -601,7 +627,7 @@ export default function InsightsDashboard() {
         </section>
 
         {activeTab === "overview" && (
-          <section className="space-y-4">
+          <section id="insights-panel-overview" role="tabpanel" aria-labelledby="insights-tab-overview" className="space-y-4">
             <SectionLabel>Overview</SectionLabel>
             <div className="grid grid-cols-1 gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
               <aside className="space-y-4">
@@ -629,7 +655,7 @@ export default function InsightsDashboard() {
         )}
 
         {activeTab === "country" && (
-          <section className="space-y-4">
+          <section id="insights-panel-country" role="tabpanel" aria-labelledby="insights-tab-country" className="space-y-4">
             <SectionLabel>Country Analytics</SectionLabel>
             {!countryError && (
               <BarChartCard title="Average Salary by Country" subtitle="One bar per country · darker bar = above overall average" data={countrySalaries.map(r => ({ country: r.country, avg: r.avgSalary }))} xKey="country" yKey="avg" color="#93c5fd" highlightColor="#2563eb" referenceValue={summary?.avgSalary} referenceLabel="Overall Avg" formatValue={fmt} loading={countryLoading || summaryLoading} height={300} />
@@ -657,7 +683,7 @@ export default function InsightsDashboard() {
         )}
 
         {activeTab === "department" && (
-          <section className="space-y-4">
+          <section id="insights-panel-department" role="tabpanel" aria-labelledby="insights-tab-department" className="space-y-4">
             <SectionLabel>Department Analytics</SectionLabel>
             {departmentError ? (
               <ErrorState message="Failed to load department analytics." />
@@ -686,14 +712,14 @@ export default function InsightsDashboard() {
         )}
 
         {activeTab === "distribution" && (
-          <section className="space-y-4">
+          <section id="insights-panel-distribution" role="tabpanel" aria-labelledby="insights-tab-distribution" className="space-y-4">
             <SectionLabel>Salary Distribution</SectionLabel>
             <SalaryDistributionChart />
           </section>
         )}
 
         {activeTab === "reports" && (
-          <section className="space-y-4">
+          <section id="insights-panel-reports" role="tabpanel" aria-labelledby="insights-tab-reports" className="space-y-4">
             <SectionLabel>Reports</SectionLabel>
             <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-200 hover:shadow-md dark:border-gray-800 dark:bg-gray-900 dark:shadow-black/20 dark:hover:shadow-black/30">
               <div className="border-b border-gray-100 px-6 py-5 dark:border-gray-800">
