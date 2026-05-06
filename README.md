@@ -144,6 +144,6 @@ All generated output was manually reviewed, validated, and refined before integr
 
 ## 10. Demo / Deployment
 
-- Live Demo: [Add URL]
-- Demo Video: [Add URL]
+- Live Demo: <<TODO>>
+- Demo Video: <<TODO>>
 
