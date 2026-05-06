@@ -47,13 +47,13 @@ function DeleteConfirmModal({
         <div className="flex justify-end gap-3">
           <button
             onClick={onCancel}
-            className="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+            className="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-600 transition-all hover:bg-gray-50 active:scale-95"
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
-            className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+            className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-red-700 active:scale-95"
           >
             Delete
           </button>
@@ -166,7 +166,7 @@ function Pagination({
           <button
             disabled={page <= 1}
             onClick={() => onPageChange(page - 1)}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium transition-all hover:bg-gray-50 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             ← Prev
           </button>
@@ -178,7 +178,7 @@ function Pagination({
           <button
             disabled={page >= totalPages}
             onClick={() => onPageChange(page + 1)}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium transition-all hover:bg-gray-50 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Next →
           </button>
@@ -282,7 +282,7 @@ export default function EmployeeDashboard() {
           </div>
           <button
             onClick={() => { setEditingEmployee(null); setModalOpen(true); }}
-            className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 active:bg-blue-800 transition-colors"
+            className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 active:scale-95 active:bg-blue-800 transition-all duration-150"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -395,12 +395,16 @@ export default function EmployeeDashboard() {
               ) : employees.length === 0 ? (
                 <EmptyState hasFilters={hasFilters} />
               ) : (
-                employees.map(emp => (
-                  <tr key={emp.id} className="group hover:bg-slate-50 transition-colors duration-100">
+                employees.map((emp, i) => (
+                  <tr
+                    key={emp.id}
+                    className="animate-fade-in-up group border-l-2 border-l-transparent hover:border-l-blue-400 hover:bg-blue-50/30 transition-colors duration-150"
+                    style={{ animationDelay: `${i * 25}ms`, opacity: 0 }}
+                  >
                     {/* Full Name */}
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700 transition-transform duration-150 group-hover:scale-110">
                           {emp.fullName.charAt(0).toUpperCase()}
                         </div>
                         <span className="font-semibold text-gray-900">
@@ -411,7 +415,7 @@ export default function EmployeeDashboard() {
 
                     {/* Job Title */}
                     <td className="px-5 py-4">
-                      <span className="inline-flex items-center rounded-md bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
+                      <span className="inline-flex items-center rounded-md bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600 transition-colors duration-150 group-hover:bg-gray-200">
                         {emp.jobTitle}
                       </span>
                     </td>
@@ -423,29 +427,29 @@ export default function EmployeeDashboard() {
                       </span>
                     </td>
 
-                    {/* Salary — right-aligned, tabular nums */}
+                    {/* Salary */}
                     <td className="px-5 py-4 text-right">
                       <span className="font-semibold tabular-nums text-gray-800">
                         {emp.salary.toLocaleString("en-US", { maximumFractionDigits: 0 })}
                       </span>
                     </td>
 
-                    {/* Actions — icon buttons revealed on hover */}
+                    {/* Actions — always visible, color on hover */}
                     <td className="px-5 py-4">
-                      <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                      <div className="flex items-center justify-end gap-1">
                         <button
-                          title="Edit"
+                          title="Edit employee"
                           onClick={() => { setEditingEmployee(emp); setModalOpen(true); }}
-                          className="rounded-lg p-1.5 text-gray-400 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                          className="rounded-lg p-1.5 text-gray-300 transition-all duration-150 hover:bg-blue-50 hover:text-blue-600 active:scale-90"
                         >
                           <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
                           </svg>
                         </button>
                         <button
-                          title="Delete"
+                          title="Delete employee"
                           onClick={() => setDeletingEmployee(emp)}
-                          className="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+                          className="rounded-lg p-1.5 text-gray-300 transition-all duration-150 hover:bg-red-50 hover:text-red-500 active:scale-90"
                         >
                           <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
@@ -500,7 +504,7 @@ function StatCard({
   value: string;
 }) {
   return (
-    <div className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
+    <div className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white px-5 py-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
       <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${iconBg}`}>
         {icon}
       </div>
