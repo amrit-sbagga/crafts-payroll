@@ -145,8 +145,19 @@ All generated output was manually reviewed, validated, and refined before integr
 ## 10. Demo / Deployment
 
 - Live Demo: [https://crafts-payroll.vercel.app/](https://crafts-payroll.vercel.app/)
+- Product Roadmap: [`docs/roadmap.md`](docs/roadmap.md)
 
-## 11. One-Click Seed Endpoint
+## 11. Screenshots
+
+### Employees Home
+
+![Employees Home](docs/screenshots/employees-home.png)
+
+### Salary Insights
+
+![Salary Insights](docs/screenshots/salary-insights.png)
+
+## 12. One-Click Seed Endpoint
 
 For production/staging convenience, a protected seed API is available:
 
