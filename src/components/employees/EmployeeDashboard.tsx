@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PaginationBar from "@/features/employees/components/PaginationBar";
 import EmployeeDataTable from "@/features/employees/components/EmployeeDataTable";
 import EmployeePageHeader from "@/features/employees/components/EmployeePageHeader";
@@ -48,9 +48,17 @@ export default function EmployeeDashboard() {
   const [payrollMonth, setPayrollMonth] = useState(new Date().getMonth() + 1);
   const [payrollYear, setPayrollYear] = useState(new Date().getFullYear());
   const [payrollError, setPayrollError] = useState<string | null>(null);
+  const [successToast, setSuccessToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!successToast) return;
+    const timer = window.setTimeout(() => setSuccessToast(null), 2500);
+    return () => window.clearTimeout(timer);
+  }, [successToast]);
 
   async function handleDeleteConfirmed() {
     if (!deletingEmployee) return;
+    const deletingName = deletingEmployee.fullName;
     const deletingId = deletingEmployee.id;
     setDeletingEmployee(null);
     const shouldGoPrevPage = employees.length === 1 && page > 1;
@@ -59,6 +67,7 @@ export default function EmployeeDashboard() {
 
     try {
       await deleteEmployeeById(deletingId);
+      setSuccessToast(`Deleted ${deletingName}`);
       if (shouldGoPrevPage) {
         setPage(p => p - 1);
       } else {
@@ -225,6 +234,12 @@ export default function EmployeeDashboard() {
           report={payrollReport}
           onClose={() => setPayrollReport(null)}
         />
+      )}
+
+      {successToast && (
+        <div className="animate-fade-in-up pointer-events-none fixed bottom-6 left-1/2 z-[120] -translate-x-1/2 rounded-lg border border-emerald-200 bg-white px-4 py-2 text-sm font-semibold text-emerald-700 shadow-md dark:border-emerald-900/50 dark:bg-gray-900 dark:text-emerald-300">
+          {successToast}
+        </div>
       )}
     </div>
   );
