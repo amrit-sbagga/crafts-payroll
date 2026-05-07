@@ -70,7 +70,9 @@ export async function listEmployees({
     ...(search && {
       fullName: { contains: search, mode: Prisma.QueryMode.insensitive }
     }),
-    ...(country && { country }),
+    ...(country && {
+      country: { contains: country, mode: Prisma.QueryMode.insensitive }
+    }),
     ...(jobTitle && {
       jobTitle: { contains: jobTitle, mode: Prisma.QueryMode.insensitive }
     })
