@@ -78,8 +78,8 @@ export default function EmployeeDashboard() {
       updateEmployeeLocally(savedEmployee);
     } else {
       addEmployeeLocally(savedEmployee);
+      refresh();
     }
-    refresh();
   }
 
   async function handleRunPayroll() {
