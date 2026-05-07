@@ -47,7 +47,7 @@ export default function EmployeeFilterBar({
   onClear
 }: Props) {
   return (
-    <aside className="density-panel self-start rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-colors duration-300 lg:sticky lg:top-3 dark:border-gray-800 dark:bg-gray-900">
+    <aside className="density-panel self-start rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-colors duration-300 lg:sticky lg:top-0 dark:border-gray-800 dark:bg-gray-900">
       <div className="mb-3 flex items-center justify-between">
         <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Filter & Search</p>
         {hasFilters && (
