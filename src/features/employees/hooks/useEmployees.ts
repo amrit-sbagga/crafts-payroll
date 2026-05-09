@@ -15,7 +15,7 @@ const DEFAULT_META: EmployeeMeta = {
 
 type SortField = "fullName" | "jobTitle" | "country" | "department" | "salary" | "createdAt";
 
-type EmployeesCacheState = {
+export type EmployeesCacheState = {
   queryKey: string;
   employees: Employee[];
   meta: EmployeeMeta;
@@ -69,6 +69,17 @@ function buildQueryKey({
   return params.toString();
 }
 
+export function resolveInitialEmployeesCache(
+  cachedCache: EmployeesCacheState | null,
+  serverCache: EmployeesCacheState | null
+) {
+  if (serverCache && (!cachedCache || cachedCache.queryKey === serverCache.queryKey)) {
+    return serverCache;
+  }
+
+  return cachedCache ?? serverCache;
+}
+
 export default function useEmployees(initialData?: EmployeesInitialData) {
   const derivedInitialCache = useMemo(
     () =>
@@ -97,7 +108,7 @@ export default function useEmployees(initialData?: EmployeesInitialData) {
     [initialData]
   );
 
-  const initialCache = employeesCache ?? derivedInitialCache;
+  const initialCache = resolveInitialEmployeesCache(employeesCache, derivedInitialCache);
   const [employees, setEmployees] = useState<Employee[]>(initialCache?.employees ?? []);
   const [meta, setMeta] = useState<EmployeeMeta>(initialCache?.meta ?? DEFAULT_META);
   const [loading, setLoading] = useState(!initialCache);
@@ -121,7 +132,7 @@ export default function useEmployees(initialData?: EmployeesInitialData) {
   const refresh = useCallback(() => setRefreshKey(k => k + 1), []);
 
   useEffect(() => {
-    if (!employeesCache && derivedInitialCache) {
+    if (resolveInitialEmployeesCache(employeesCache, derivedInitialCache) === derivedInitialCache) {
       employeesCache = derivedInitialCache;
     }
   }, [derivedInitialCache]);

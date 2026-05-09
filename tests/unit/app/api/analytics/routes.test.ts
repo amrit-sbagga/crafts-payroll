@@ -40,6 +40,7 @@ describe("analytics api routes", () => {
     const json = await response.json();
 
     expect(response.status).toBe(200);
+    expect(response.headers.get("Cache-Control")).toBe("private, no-store");
     expect(json).toEqual({
       success: true,
       data: { minSalary: 100, maxSalary: 1000, avgSalary: 500, totalEmployees: 10 }
@@ -68,6 +69,7 @@ describe("analytics api routes", () => {
     const json = await response.json();
 
     expect(response.status).toBe(200);
+    expect(response.headers.get("Cache-Control")).toBe("private, no-store");
     expect(json).toEqual({
       success: true,
       data: [{ country: "India", minSalary: 100, maxSalary: 1000, avgSalary: 500 }]
@@ -83,6 +85,7 @@ describe("analytics api routes", () => {
     const json = await response.json();
 
     expect(response.status).toBe(200);
+    expect(response.headers.get("Cache-Control")).toBe("private, no-store");
     expect(json).toEqual({
       success: true,
       data: [{ department: "Engineering", headcount: 4, avgSalary: 600 }]
@@ -104,6 +107,7 @@ describe("analytics api routes", () => {
     const json = await response.json();
 
     expect(response.status).toBe(200);
+    expect(response.headers.get("Cache-Control")).toBe("private, no-store");
     expect(mockedGetJobTitleSalaryStats).toHaveBeenCalledWith("India");
     expect(json).toEqual({
       success: true,

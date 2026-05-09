@@ -10,6 +10,8 @@ export const metadata = {
   title: "Salary Insights | Salary Management Tool"
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function InsightsPage() {
   const [summary, countrySalaries, departmentSalaries, jobSalaries] = await Promise.all([
     getGlobalSalarySummary(),
