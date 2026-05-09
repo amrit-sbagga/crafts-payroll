@@ -19,7 +19,7 @@ export default function AppNav() {
   return (
     <nav className="relative z-80 border-b border-gray-200 bg-white/95 py-3 shadow-sm backdrop-blur transition-colors duration-300 dark:border-gray-800 dark:bg-gray-950/90">
       <div className="mx-auto flex w-full max-w-[1500px] items-center gap-6 px-4 sm:px-6">
-        <span className="text-sm font-bold uppercase tracking-wide text-gray-800 dark:text-gray-100">Salary Management</span>
+        <span className="text-sm font-bold uppercase tracking-wide text-gray-800 dark:text-gray-100">Payroll Management</span>
 
         <Link href="/" className={`${linkBase} ${isEmployees ? activeClass : inactiveClass}`} aria-current={isEmployees ? "page" : undefined}>
           Employees

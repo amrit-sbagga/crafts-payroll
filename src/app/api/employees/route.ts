@@ -5,6 +5,8 @@ import {
   listEmployees
 } from "@/modules/employee/employee.service";
 
+const CACHE_CONTROL = "public, s-maxage=60, stale-while-revalidate=300";
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = request.nextUrl;
@@ -38,7 +40,9 @@ export async function GET(request: NextRequest) {
       sortOrder
     });
 
-    return NextResponse.json(result);
+    return NextResponse.json(result, {
+      headers: { "Cache-Control": CACHE_CONTROL }
+    });
   } catch {
     return NextResponse.json(
       { error: "Failed to fetch employees" },

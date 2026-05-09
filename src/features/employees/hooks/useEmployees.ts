@@ -30,8 +30,74 @@ type EmployeesCacheState = {
 
 let employeesCache: EmployeesCacheState | null = null;
 
-export default function useEmployees() {
-  const initialCache = employeesCache;
+export type EmployeesInitialData = {
+  data: Employee[];
+  meta: EmployeeMeta;
+  search?: string;
+  country?: string;
+  jobTitle?: string;
+  sortBy?: SortField;
+  sortOrder?: "asc" | "desc";
+};
+
+function buildQueryKey({
+  page,
+  limit,
+  sortBy,
+  sortOrder,
+  search,
+  country,
+  jobTitle
+}: {
+  page: number;
+  limit: number;
+  sortBy: SortField;
+  sortOrder: "asc" | "desc";
+  search: string;
+  country: string;
+  jobTitle: string;
+}) {
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+    sortBy,
+    sortOrder
+  });
+  if (search) params.set("search", search);
+  if (country) params.set("country", country);
+  if (jobTitle) params.set("jobTitle", jobTitle);
+  return params.toString();
+}
+
+export default function useEmployees(initialData?: EmployeesInitialData) {
+  const derivedInitialCache = useMemo(
+    () =>
+      initialData
+        ? {
+            queryKey: buildQueryKey({
+              page: initialData.meta.page,
+              limit: initialData.meta.limit,
+              sortBy: initialData.sortBy ?? "createdAt",
+              sortOrder: initialData.sortOrder ?? "desc",
+              search: initialData.search ?? "",
+              country: initialData.country ?? "",
+              jobTitle: initialData.jobTitle ?? ""
+            }),
+            employees: initialData.data,
+            meta: initialData.meta,
+            search: initialData.search ?? "",
+            country: initialData.country ?? "",
+            jobTitle: initialData.jobTitle ?? "",
+            page: initialData.meta.page,
+            limit: initialData.meta.limit,
+            sortBy: initialData.sortBy ?? "createdAt",
+            sortOrder: initialData.sortOrder ?? "desc"
+          }
+        : null,
+    [initialData]
+  );
+
+  const initialCache = employeesCache ?? derivedInitialCache;
   const [employees, setEmployees] = useState<Employee[]>(initialCache?.employees ?? []);
   const [meta, setMeta] = useState<EmployeeMeta>(initialCache?.meta ?? DEFAULT_META);
   const [loading, setLoading] = useState(!initialCache);
@@ -55,16 +121,22 @@ export default function useEmployees() {
   const refresh = useCallback(() => setRefreshKey(k => k + 1), []);
 
   useEffect(() => {
-    const params = new URLSearchParams({
-      page: String(page),
-      limit: String(limit),
+    if (!employeesCache && derivedInitialCache) {
+      employeesCache = derivedInitialCache;
+    }
+  }, [derivedInitialCache]);
+
+  useEffect(() => {
+    const queryKey = buildQueryKey({
+      page,
+      limit,
       sortBy,
-      sortOrder
+      sortOrder,
+      search,
+      country,
+      jobTitle
     });
-    if (search) params.set("search", search);
-    if (country) params.set("country", country);
-    if (jobTitle) params.set("jobTitle", jobTitle);
-    const queryKey = params.toString();
+    const params = new URLSearchParams(queryKey);
 
     if (
       !didSkipInitialFetch.current &&

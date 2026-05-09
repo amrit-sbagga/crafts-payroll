@@ -8,12 +8,12 @@ import EmployeeFilterBar from "@/features/employees/components/EmployeeFilterBar
 import EmployeeDeleteDialog from "@/features/employees/components/EmployeeDeleteDialog";
 import RunPayrollModal from "@/features/employees/components/RunPayrollModal";
 import PayrollReportModal, { type PayrollReport } from "@/features/employees/components/PayrollReportModal";
-import useEmployees from "@/features/employees/hooks/useEmployees";
+import useEmployees, { type EmployeesInitialData } from "@/features/employees/hooks/useEmployees";
 import { deleteEmployeeById, runPayroll } from "@/features/employees/services/employeeApi";
 import type { Employee } from "@/types/employee";
 import EmployeeFormModal from "./EmployeeFormModal";
 
-export default function EmployeeDashboard() {
+export default function EmployeeDashboard({ initialData }: { initialData?: EmployeesInitialData }) {
   const {
     employees,
     meta,
@@ -37,7 +37,7 @@ export default function EmployeeDashboard() {
     addEmployeeLocally,
     updateEmployeeLocally,
     removeEmployeeById
-  } = useEmployees();
+  } = useEmployees(initialData);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<(typeof employees)[number] | null>(null);
