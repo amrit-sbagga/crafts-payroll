@@ -15,10 +15,26 @@ export default async function HomePage() {
     sortOrder: "desc"
   });
 
+  const initialEmployeeRows = initialEmployees.data.map((employee) => ({
+    ...employee,
+    joiningDate:
+      employee.joiningDate instanceof Date
+        ? employee.joiningDate.toISOString()
+        : employee.joiningDate,
+    createdAt:
+      employee.createdAt instanceof Date
+        ? employee.createdAt.toISOString()
+        : employee.createdAt,
+    updatedAt:
+      employee.updatedAt instanceof Date
+        ? employee.updatedAt.toISOString()
+        : employee.updatedAt
+  }));
+
   return (
     <EmployeeDashboard
       initialData={{
-        data: initialEmployees.data,
+        data: initialEmployeeRows,
         meta: initialEmployees.meta,
         sortBy: "createdAt",
         sortOrder: "desc"
