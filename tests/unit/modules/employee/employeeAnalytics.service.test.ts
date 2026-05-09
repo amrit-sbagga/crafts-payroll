@@ -140,7 +140,7 @@ describe("getGlobalSalarySummary", () => {
       _min: { salary: 40000 },
       _max: { salary: 2500000 },
       _avg: { salary: 820000 },
-      _count: { salary: 10000 },
+      _count: { _all: 10000 },
       _sum: { salary: 8200000000 }
     } as never);
 
@@ -149,7 +149,8 @@ describe("getGlobalSalarySummary", () => {
     expect(result).toEqual({
       minSalary: 40000,
       maxSalary: 2500000,
-      avgSalary: 820000
+      avgSalary: 820000,
+      totalEmployees: 10000
     });
   });
 
@@ -158,7 +159,7 @@ describe("getGlobalSalarySummary", () => {
       _min: { salary: null },
       _max: { salary: null },
       _avg: { salary: null },
-      _count: { salary: 0 },
+      _count: { _all: 0 },
       _sum: { salary: null }
     } as never);
 
@@ -167,7 +168,8 @@ describe("getGlobalSalarySummary", () => {
     expect(result).toEqual({
       minSalary: 0,
       maxSalary: 0,
-      avgSalary: 0
+      avgSalary: 0,
+      totalEmployees: 0
     });
   });
 });

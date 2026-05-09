@@ -10,7 +10,7 @@ import SalaryBar from "@/features/analytics/components/SalaryBar";
 import { EmptyTableState, ErrorState, RowSkeleton } from "@/features/analytics/components/AnalyticsTableStates";
 import InsightsTabs, { type InsightsTab } from "@/features/analytics/components/InsightsTabs";
 import AnalyticsFiltersToolbar from "@/features/analytics/components/AnalyticsFiltersToolbar";
-import useAnalytics from "@/features/analytics/hooks/useAnalytics";
+import useAnalytics, { type AnalyticsInitialData } from "@/features/analytics/hooks/useAnalytics";
 import PageHeader from "@/shared/components/PageHeader";
 import type { DepartmentSalaryStats } from "@/modules/employee/employeeAnalytics.service";
 import type { ExportFormat, ExportSelection } from "@/lib/exportReport";
@@ -27,7 +27,7 @@ function fmt(value: number): string {
 
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 
-export default function InsightsDashboard() {
+export default function InsightsDashboard({ initialData }: { initialData?: AnalyticsInitialData }) {
   const [selectedCountry, setSelectedCountry] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("");
   const [refreshTick, setRefreshTick] = useState(0);
@@ -46,7 +46,7 @@ export default function InsightsDashboard() {
     countryError,
     departmentError,
     jobError
-  } = useAnalytics(selectedCountry, selectedDepartment, refreshTick);
+  } = useAnalytics(selectedCountry, selectedDepartment, refreshTick, initialData);
 
   const [exporting, setExporting] = useState(false);
   const [exportDialogOpen, setExportDialogOpen] = useState(false);

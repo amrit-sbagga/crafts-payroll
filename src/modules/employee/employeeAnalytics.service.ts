@@ -16,6 +16,7 @@ export type GlobalSalarySummary = {
   minSalary: number;
   maxSalary: number;
   avgSalary: number;
+  totalEmployees: number;
 };
 
 export type DepartmentSalaryStats = {
@@ -59,6 +60,7 @@ export async function getJobTitleSalaryStats(
 
 export async function getGlobalSalarySummary(): Promise<GlobalSalarySummary> {
   const result = await prisma.employee.aggregate({
+    _count: { _all: true },
     _min: { salary: true },
     _max: { salary: true },
     _avg: { salary: true }
@@ -67,7 +69,8 @@ export async function getGlobalSalarySummary(): Promise<GlobalSalarySummary> {
   return {
     minSalary: Number(result._min.salary ?? 0),
     maxSalary: Number(result._max.salary ?? 0),
-    avgSalary: Number(result._avg.salary ?? 0)
+    avgSalary: Number(result._avg.salary ?? 0),
+    totalEmployees: result._count._all
   };
 }
 

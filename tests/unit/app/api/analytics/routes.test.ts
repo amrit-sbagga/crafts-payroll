@@ -32,7 +32,8 @@ describe("analytics api routes", () => {
     mockedGetGlobalSalarySummary.mockResolvedValue({
       minSalary: 100,
       maxSalary: 1000,
-      avgSalary: 500
+      avgSalary: 500,
+      totalEmployees: 10
     });
 
     const response = await getSummary();
@@ -41,7 +42,7 @@ describe("analytics api routes", () => {
     expect(response.status).toBe(200);
     expect(json).toEqual({
       success: true,
-      data: { minSalary: 100, maxSalary: 1000, avgSalary: 500 }
+      data: { minSalary: 100, maxSalary: 1000, avgSalary: 500, totalEmployees: 10 }
     });
   });
 

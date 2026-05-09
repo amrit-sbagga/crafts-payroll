@@ -4,17 +4,28 @@ import { useEffect, useMemo, useState } from "react";
 import type { CountrySalaryStats, DepartmentSalaryStats, GlobalSalarySummary, JobTitleSalaryStats } from "@/modules/employee/employeeAnalytics.service";
 import { fetchAnalyticsSummary, fetchCountrySalaries, fetchDepartmentSalaries, fetchJobSalaries } from "@/features/analytics/services/analyticsApi";
 
-export default function useAnalytics(selectedCountry: string, selectedDepartment: string, refreshTick: number) {
-  const [summary, setSummary] = useState<GlobalSalarySummary | null>(null);
-  const [totalEmployees, setTotalEmployees] = useState<number | null>(null);
-  const [countrySalaries, setCountrySalaries] = useState<CountrySalaryStats[]>([]);
-  const [departmentSalaries, setDepartmentSalaries] = useState<DepartmentSalaryStats[]>([]);
-  const [jobSalaries, setJobSalaries] = useState<JobTitleSalaryStats[]>([]);
+export type AnalyticsInitialData = {
+  summary: GlobalSalarySummary | null;
+  countrySalaries: CountrySalaryStats[];
+  departmentSalaries: DepartmentSalaryStats[];
+  jobSalaries: JobTitleSalaryStats[];
+};
 
-  const [summaryLoading, setSummaryLoading] = useState(true);
-  const [countryLoading, setCountryLoading] = useState(true);
-  const [departmentLoading, setDepartmentLoading] = useState(true);
-  const [jobLoading, setJobLoading] = useState(true);
+export default function useAnalytics(
+  selectedCountry: string,
+  selectedDepartment: string,
+  refreshTick: number,
+  initialData?: AnalyticsInitialData
+) {
+  const [summary, setSummary] = useState<GlobalSalarySummary | null>(initialData?.summary ?? null);
+  const [countrySalaries, setCountrySalaries] = useState<CountrySalaryStats[]>(initialData?.countrySalaries ?? []);
+  const [departmentSalaries, setDepartmentSalaries] = useState<DepartmentSalaryStats[]>(initialData?.departmentSalaries ?? []);
+  const [jobSalaries, setJobSalaries] = useState<JobTitleSalaryStats[]>(initialData?.jobSalaries ?? []);
+
+  const [summaryLoading, setSummaryLoading] = useState(!initialData?.summary);
+  const [countryLoading, setCountryLoading] = useState(initialData?.countrySalaries.length === 0);
+  const [departmentLoading, setDepartmentLoading] = useState(initialData?.departmentSalaries.length === 0);
+  const [jobLoading, setJobLoading] = useState(initialData?.jobSalaries.length === 0);
 
   const [summaryError, setSummaryError] = useState(false);
   const [countryError, setCountryError] = useState(false);
@@ -22,43 +33,46 @@ export default function useAnalytics(selectedCountry: string, selectedDepartment
   const [jobError, setJobError] = useState(false);
 
   useEffect(() => {
+    if (initialData?.summary && refreshTick === 0) return;
     setSummaryLoading(true);
     setSummaryError(false);
-    Promise.all([fetchAnalyticsSummary(), fetch("/api/employees?limit=1").then(r => r.json())])
-      .then(([summaryJson, employeesJson]) => {
+    fetchAnalyticsSummary()
+      .then((summaryJson) => {
         setSummary(summaryJson.data);
-        setTotalEmployees(employeesJson.meta?.total ?? null);
       })
       .catch(() => setSummaryError(true))
       .finally(() => setSummaryLoading(false));
-  }, [refreshTick]);
+  }, [refreshTick, initialData?.summary]);
 
   useEffect(() => {
+    if (initialData?.countrySalaries.length && refreshTick === 0) return;
     setCountryLoading(true);
     setCountryError(false);
     fetchCountrySalaries()
       .then(json => setCountrySalaries(json.data ?? []))
       .catch(() => setCountryError(true))
       .finally(() => setCountryLoading(false));
-  }, [refreshTick]);
+  }, [refreshTick, initialData?.countrySalaries.length]);
 
   useEffect(() => {
+    if (initialData?.departmentSalaries.length && refreshTick === 0) return;
     setDepartmentLoading(true);
     setDepartmentError(false);
     fetchDepartmentSalaries()
       .then(json => setDepartmentSalaries(json.data ?? []))
       .catch(() => setDepartmentError(true))
       .finally(() => setDepartmentLoading(false));
-  }, [refreshTick]);
+  }, [refreshTick, initialData?.departmentSalaries.length]);
 
   useEffect(() => {
+    if (!selectedCountry && initialData?.jobSalaries.length && refreshTick === 0) return;
     setJobLoading(true);
     setJobError(false);
     fetchJobSalaries(selectedCountry || undefined)
       .then(json => setJobSalaries(json.data ?? []))
       .catch(() => setJobError(true))
       .finally(() => setJobLoading(false));
-  }, [selectedCountry, refreshTick]);
+  }, [selectedCountry, refreshTick, initialData?.jobSalaries.length]);
 
   const filteredDepartmentSalaries = useMemo(
     () => (selectedDepartment ? departmentSalaries.filter(row => row.department === selectedDepartment) : departmentSalaries),
@@ -67,7 +81,7 @@ export default function useAnalytics(selectedCountry: string, selectedDepartment
 
   return {
     summary,
-    totalEmployees,
+    totalEmployees: summary?.totalEmployees ?? null,
     countrySalaries,
     departmentSalaries,
     filteredDepartmentSalaries,
