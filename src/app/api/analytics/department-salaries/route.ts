@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDepartmentSalaryStats } from "@/modules/employee/employeeAnalytics.service";
 
-const CACHE_CONTROL = "public, s-maxage=60, stale-while-revalidate=300";
+const CACHE_CONTROL = "private, no-store";
 
 export async function GET() {
   try {
