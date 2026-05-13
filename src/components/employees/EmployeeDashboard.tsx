@@ -70,11 +70,9 @@ export default function EmployeeDashboard({ initialData }: { initialData?: Emplo
       setSuccessToast(`Deleted ${deletingName}`);
       if (shouldGoPrevPage) {
         setPage(p => p - 1);
-      } else {
         refresh();
       }
     } catch {
-      // Re-sync from server if optimistic delete fails.
       refresh();
     }
   }
@@ -161,6 +159,22 @@ export default function EmployeeDashboard({ initialData }: { initialData?: Emplo
                       {meta.total.toLocaleString()} total
                     </span>
                   )}
+                  <button
+                    type="button"
+                    onClick={() => refresh()}
+                    disabled={loading}
+                    title="Refresh list from server"
+                    aria-label="Refresh employee list"
+                    className="density-btn inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 shadow-sm transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+                  >
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
+                      />
+                    </svg>
+                  </button>
                 </div>
               </div>
 

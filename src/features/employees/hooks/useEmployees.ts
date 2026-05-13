@@ -152,7 +152,7 @@ export default function useEmployees(initialData?: EmployeesInitialData) {
     setLoading(true);
     setLoadError(null);
 
-    fetchEmployees(params, controller.signal)
+    fetchEmployees(params, controller.signal, { bypassCache: refreshKey > 0 })
       .then(json => {
         const nextEmployees = json.data ?? [];
         const nextMeta = json.meta ?? DEFAULT_META;
