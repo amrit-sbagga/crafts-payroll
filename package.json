@@ -36,7 +36,8 @@
     "pg": "latest",
     "react": "latest",
     "react-dom": "latest",
-    "recharts": "^3.8.1"
+    "recharts": "^3.8.1",
+    "swagger-ui-react": "^5.32.6"
   },
   "devDependencies": {
     "@testing-library/dom": "latest",
@@ -47,6 +48,7 @@
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
+    "@types/swagger-ui-react": "^5.18.0",
     "autoprefixer": "latest",
     "eslint": "^9.19.0",
     "eslint-config-next": "latest",

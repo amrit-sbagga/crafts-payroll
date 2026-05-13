@@ -52,6 +52,7 @@ Includes employee lifecycle management, profile views, analytics dashboards, rep
 - Jest + React Testing Library
 - ESLint + Prettier
 - TSX for TypeScript scripts (seed)
+- OpenAPI spec (`src/lib/openapi.json`) + Swagger UI at `/docs`
 
 ## 3. Screens / Modules
 
@@ -59,6 +60,7 @@ Includes employee lifecycle management, profile views, analytics dashboards, rep
 - **Employee Profile**: detailed profile with salary and department insights
 - **Salary Insights Dashboard**: KPI cards, tabs, charts, and report export
 - **Settings / Theme**: theme and density preferences
+- **API docs**: interactive OpenAPI (Swagger) UI at `/docs` (see [section 5](#5-api-documentation))
 
 ## 4. Local Setup
 
@@ -90,7 +92,35 @@ Start development server:
 npm run dev
 ```
 
-## 5. Seed Data
+## 5. API documentation
+
+This app includes **OpenAPI 3** metadata and a **Swagger UI** explorer (OpenAPI is the spec format; Swagger UI is the interactive browser for it).
+
+| What | Where |
+|------|--------|
+| Interactive UI | [`/docs`](http://localhost:3000/docs) (after `npm run dev`; on Vercel: `https://<your-deployment>/docs`) |
+| Raw OpenAPI JSON | `/api/openapi` (import into Postman, Insomnia, codegen tools, etc.) |
+| Spec source (edit when APIs change) | `src/lib/openapi.json` |
+
+The nav bar includes an **API docs** link to `/docs`.
+
+### Is `/docs` public on Vercel?
+
+**Yes, unless you add extra protection.** Anything you deploy as a normal Next.js route is reachable by anyone who knows (or guesses) your production URL—same as `/`, `/insights`, and your public `/api/*` handlers. Pushing to Vercel does **not** hide `/docs` by default.
+
+**What that exposes:** the OpenAPI description (paths, methods, request/response shapes). It does **not** embed secrets like `DATABASE_URL` or `SEED_API_TOKEN`. Protected behavior (for example `POST /api/admin/seed`) still requires the bearer token documented in the spec.
+
+**When public docs are reasonable:** internal tools, demos, APIs that are already effectively public from the browser, or teams who want a live contract for integrators.
+
+**When to lock down or disable docs:** customer-facing production where you do not want the API surface advertised, compliance requirements, or defense-in-depth. Common options:
+
+- **Vercel:** [Deployment Protection](https://vercel.com/docs/security/deployment-protection) (password, Vercel auth, etc.) for preview or production.
+- **App-level:** middleware that returns `404` for `/docs` and `/api/openapi` when `NODE_ENV === 'production'` or when a flag like `ENABLE_API_DOCS` is not set (not implemented by default in this repo—add if you need it).
+- **Network:** put the app behind a VPN or corporate SSO at the edge.
+
+If you add new route handlers, update `src/lib/openapi.json` so `/docs` stays accurate.
+
+## 6. Seed Data
 
 Generate ~10,000 employee records:
 
@@ -106,7 +136,7 @@ npm run seed:clean
 
 The seed pipeline uses batched inserts for performance and predictable large-volume local testing.
 
-## 6. Testing
+## 7. Testing
 
 Run tests:
 
@@ -116,7 +146,7 @@ npm test
 
 The project includes meaningful unit coverage for core employee flows, API routes, seed helpers, and analytics logic.
 
-## 7. Architecture Notes
+## 8. Architecture Notes
 
 - Feature-oriented frontend organization (`features/employees`, `features/analytics`, `shared`)
 - Reusable components and hooks to reduce duplication
@@ -124,7 +154,7 @@ The project includes meaningful unit coverage for core employee flows, API route
 - Backend service separation under module boundaries
 - Indexed database fields to support analytics/filter performance
 
-## 8. AI-Assisted Development
+## 9. AI-Assisted Development
 
 This project intentionally used AI development tooling for:
 - UI iteration
@@ -134,7 +164,7 @@ This project intentionally used AI development tooling for:
 
 All generated output was manually reviewed, validated, and refined before integration.
 
-## 9. Future Improvements
+## 10. Future Improvements
 
 - Payroll processing engine with approvals and audit trail
 - Role-based access control (RBAC)
@@ -142,12 +172,12 @@ All generated output was manually reviewed, validated, and refined before integr
 - Notification workflows (email/in-app)
 - Multi-tenant organization support
 
-## 10. Demo / Deployment
+## 11. Demo / Deployment
 
 - Live Demo: [https://crafts-payroll.vercel.app/](https://crafts-payroll.vercel.app/)
 - Product Roadmap: [`docs/roadmap.md`](docs/roadmap.md)
 
-## 11. Screenshots
+## 12. Screenshots
 
 ### Employees Home
 
@@ -157,7 +187,7 @@ All generated output was manually reviewed, validated, and refined before integr
 
 ![Salary Insights](docs/screenshots/salary-insights.png)
 
-## 12. One-Click Seed Endpoint
+## 13. One-Click Seed Endpoint
 
 For production/staging convenience, a protected seed API is available:
 

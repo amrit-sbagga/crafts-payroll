@@ -8,6 +8,7 @@ export default function AppNav() {
   const pathname = usePathname();
   const isEmployees = pathname === "/";
   const isInsights = pathname.startsWith("/insights");
+  const isDocs = pathname === "/docs";
 
   const linkBase =
     "rounded-md px-2 py-1 text-sm transition-colors";
@@ -30,6 +31,13 @@ export default function AppNav() {
           aria-current={isInsights ? "page" : undefined}
         >
           Salary Insights
+        </Link>
+        <Link
+          href="/docs"
+          className={`${linkBase} ${isDocs ? activeClass : inactiveClass}`}
+          aria-current={isDocs ? "page" : undefined}
+        >
+          API docs
         </Link>
 
         <div className="ml-auto">

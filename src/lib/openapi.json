@@ -1,0 +1,612 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Crafts Payroll API",
+    "description": "HTTP API for the Salary Management Tool: employees, payroll runs, salary analytics, and optional database seeding.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "Current origin (e.g. http://localhost:3000 in development)"
+    }
+  ],
+  "tags": [
+    { "name": "Employees", "description": "CRUD, list filters, and bulk delete" },
+    { "name": "Payroll", "description": "Monthly payroll snapshot" },
+    { "name": "Analytics", "description": "Aggregated salary statistics (cached responses)" },
+    { "name": "Admin", "description": "Operational endpoints (token-protected)" }
+  ],
+  "components": {
+    "securitySchemes": {
+      "SeedBearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Value must match `SEED_API_TOKEN` from the server environment. Alternatively send the same token in header `x-seed-token`."
+      }
+    },
+    "schemas": {
+      "Employee": {
+        "type": "object",
+        "required": [
+          "id",
+          "fullName",
+          "jobTitle",
+          "country",
+          "department",
+          "gender",
+          "joiningDate",
+          "salary",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": { "type": "string" },
+          "fullName": { "type": "string" },
+          "jobTitle": { "type": "string" },
+          "country": { "type": "string" },
+          "department": {
+            "type": "string",
+            "enum": ["Engineering", "HR", "Finance", "Sales", "Operations", "Marketing"]
+          },
+          "gender": { "type": "string", "enum": ["Male", "Female", "Other"] },
+          "joiningDate": { "type": "string", "description": "ISO date or date string" },
+          "avatarUrl": { "type": "string", "nullable": true },
+          "salary": { "type": "number" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "EmployeeListMeta": {
+        "type": "object",
+        "properties": {
+          "total": { "type": "integer" },
+          "page": { "type": "integer" },
+          "limit": { "type": "integer" },
+          "totalPages": { "type": "integer" }
+        }
+      },
+      "EmployeeInput": {
+        "type": "object",
+        "required": ["fullName", "jobTitle", "country", "joiningDate", "salary"],
+        "properties": {
+          "fullName": { "type": "string" },
+          "jobTitle": { "type": "string" },
+          "country": { "type": "string" },
+          "department": {
+            "type": "string",
+            "default": "Engineering",
+            "enum": ["Engineering", "HR", "Finance", "Sales", "Operations", "Marketing"]
+          },
+          "gender": { "type": "string", "default": "Male", "enum": ["Male", "Female", "Other"] },
+          "joiningDate": { "type": "string" },
+          "avatarUrl": { "type": "string", "description": "Optional URL or empty string" },
+          "salary": { "type": "number" }
+        }
+      },
+      "ValidationError": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string", "example": "Validation failed" },
+          "fields": {
+            "type": "object",
+            "additionalProperties": { "type": "string" }
+          }
+        }
+      },
+      "GenericError": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string" }
+        }
+      },
+      "PayrollRunSummary": {
+        "type": "object",
+        "properties": {
+          "month": { "type": "integer", "minimum": 1, "maximum": 12 },
+          "year": { "type": "integer" },
+          "totalEmployees": { "type": "integer" },
+          "totalPayout": { "type": "number" },
+          "avgPayout": { "type": "number" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/employees": {
+      "get": {
+        "tags": ["Employees"],
+        "summary": "List employees",
+        "description": "Paginated list with optional filters and sorting. Responses may include `Cache-Control` for CDN caching.",
+        "parameters": [
+          { "name": "page", "in": "query", "schema": { "type": "integer", "minimum": 1, "default": 1 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "minimum": 1, "default": 20 } },
+          { "name": "search", "in": "query", "schema": { "type": "string" }, "description": "Case-insensitive match on full name" },
+          { "name": "country", "in": "query", "schema": { "type": "string" } },
+          { "name": "jobTitle", "in": "query", "schema": { "type": "string" } },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["fullName", "jobTitle", "country", "department", "salary", "createdAt"],
+              "default": "createdAt"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "in": "query",
+            "schema": { "type": "string", "enum": ["asc", "desc"], "default": "desc" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/Employee" } },
+                    "meta": { "$ref": "#/components/schemas/EmployeeListMeta" }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/GenericError" } } }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Employees"],
+        "summary": "Create employee",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/EmployeeInput" } } }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "data": { "$ref": "#/components/schemas/Employee" } }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation failed",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ValidationError" } } }
+          },
+          "500": {
+            "description": "Server error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/GenericError" } } }
+          }
+        }
+      }
+    },
+    "/api/employees/{id}": {
+      "get": {
+        "tags": ["Employees"],
+        "summary": "Get employee by id",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": {
+            "description": "Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "data": { "$ref": "#/components/schemas/Employee" } }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/GenericError" } } }
+          },
+          "500": {
+            "description": "Server error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/GenericError" } } }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Employees"],
+        "summary": "Update employee",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/EmployeeInput" } } }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "data": { "$ref": "#/components/schemas/Employee" } }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/GenericError" } } }
+          },
+          "422": {
+            "description": "Validation failed",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ValidationError" } } }
+          },
+          "500": {
+            "description": "Server error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/GenericError" } } }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Employees"],
+        "summary": "Delete employee",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "204": { "description": "Deleted" },
+          "404": {
+            "description": "Not found",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/GenericError" } } }
+          },
+          "500": {
+            "description": "Server error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/GenericError" } } }
+          }
+        }
+      }
+    },
+    "/api/employees/bulk-delete": {
+      "post": {
+        "tags": ["Employees"],
+        "summary": "Delete multiple employees by id",
+        "description": "Removes up to 100 unique employees per request. Unknown ids are ignored by the database; the response returns how many rows were deleted.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["ids"],
+                "properties": {
+                  "ids": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Employee primary keys"
+                  }
+                }
+              },
+              "example": { "ids": ["uuid-one", "uuid-two"] }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Bulk delete result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": { "deleted": { "type": "integer" } }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request (invalid body, empty ids, or batch over limit)",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/GenericError" } } }
+          },
+          "500": {
+            "description": "Server error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/GenericError" } } }
+          }
+        }
+      }
+    },
+    "/api/payroll/run": {
+      "post": {
+        "tags": ["Payroll"],
+        "summary": "Run monthly payroll snapshot",
+        "description": "Aggregates current employees and upserts a `PayrollRun` row for the given month/year.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["month", "year"],
+                "properties": {
+                  "month": { "type": "integer", "minimum": 1, "maximum": 12 },
+                  "year": { "type": "integer", "minimum": 2000, "maximum": 2100 }
+                }
+              },
+              "example": { "month": 5, "year": 2026 }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Payroll summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "data": { "$ref": "#/components/schemas/PayrollRunSummary" } }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid month/year",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/GenericError" } } }
+          },
+          "500": {
+            "description": "Server error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/GenericError" } } }
+          }
+        }
+      }
+    },
+    "/api/analytics/summary": {
+      "get": {
+        "tags": ["Analytics"],
+        "summary": "Global salary summary",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "minSalary": { "type": "number" },
+                        "maxSalary": { "type": "number" },
+                        "avgSalary": { "type": "number" },
+                        "totalEmployees": { "type": "integer" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": false },
+                    "error": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/analytics/job-salaries": {
+      "get": {
+        "tags": ["Analytics"],
+        "summary": "Average salary by job title",
+        "parameters": [
+          {
+            "name": "country",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "When set, restricts aggregation to this country"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "jobTitle": { "type": "string" },
+                          "avgSalary": { "type": "number" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "error": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/analytics/department-salaries": {
+      "get": {
+        "tags": ["Analytics"],
+        "summary": "Headcount and average salary by department",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "department": { "type": "string" },
+                          "headcount": { "type": "integer" },
+                          "avgSalary": { "type": "number" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "error": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/analytics/country-salaries": {
+      "get": {
+        "tags": ["Analytics"],
+        "summary": "Salary range and average by country",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "country": { "type": "string" },
+                          "minSalary": { "type": "number" },
+                          "maxSalary": { "type": "number" },
+                          "avgSalary": { "type": "number" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "error": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/seed": {
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Seed random employees",
+        "description": "Requires `SEED_API_TOKEN` in the server environment. Send the token as `Authorization: Bearer <token>` or header `x-seed-token`.",
+        "security": [{ "SeedBearer": [] }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "count": { "type": "integer", "default": 1000, "description": "Number of rows to insert" },
+                  "clean": { "type": "boolean", "default": false, "description": "If true, deletes all employees first" }
+                }
+              },
+              "example": { "count": 50, "clean": false }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Seed finished",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "inserted": { "type": "integer" },
+                        "cleaned": { "type": "boolean" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid token",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/GenericError" } } }
+          },
+          "500": {
+            "description": "Token not configured or seed failed",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/GenericError" } } }
+          }
+        }
+      }
+    }
+  }
+}
