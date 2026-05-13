@@ -28,6 +28,17 @@ export async function deleteEmployeeById(id: string) {
   if (!response.ok) throw new Error("Failed to delete employee");
 }
 
+export async function deleteEmployeesBulk(ids: string[]) {
+  const response = await fetch("/api/employees/bulk-delete", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ids })
+  });
+  const json = (await response.json().catch(() => ({}))) as { data?: { deleted: number }; error?: string };
+  if (!response.ok) throw new Error(json.error ?? "Failed to delete employees");
+  return json.data ?? { deleted: 0 };
+}
+
 export async function runPayroll(month: number, year: number) {
   const response = await fetch("/api/payroll/run", {
     method: "POST",

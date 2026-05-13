@@ -115,3 +115,17 @@ export async function updateEmployee(id: string, data: EmployeeInput) {
 export async function deleteEmployee(id: string) {
   await prisma.employee.delete({ where: { id } });
 }
+
+const BULK_DELETE_MAX = 100;
+
+export async function deleteEmployeesByIds(ids: string[]) {
+  const unique = [...new Set(ids.map(id => id.trim()).filter(Boolean))];
+  if (unique.length === 0) return { deleted: 0 };
+  if (unique.length > BULK_DELETE_MAX) {
+    throw new Error(`Cannot delete more than ${BULK_DELETE_MAX} employees at once`);
+  }
+  const result = await prisma.employee.deleteMany({
+    where: { id: { in: unique } }
+  });
+  return { deleted: result.count };
+}

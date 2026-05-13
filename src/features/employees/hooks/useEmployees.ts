@@ -284,6 +284,31 @@ export default function useEmployees(initialData?: EmployeesInitialData) {
     });
   }, []);
 
+  const removeEmployeesByIds = useCallback((ids: string[]) => {
+    const idSet = new Set(ids);
+    const decrement = ids.length;
+    setEmployees(prev => {
+      const next = prev.filter(item => !idSet.has(item.id));
+      if (employeesCache) {
+        employeesCache = {
+          ...employeesCache,
+          employees: next
+        };
+      }
+      return next;
+    });
+    setMeta(prev => {
+      const next = { ...prev, total: Math.max(0, prev.total - decrement) };
+      if (employeesCache) {
+        employeesCache = {
+          ...employeesCache,
+          meta: next
+        };
+      }
+      return next;
+    });
+  }, []);
+
   return {
     employees,
     meta,
@@ -307,6 +332,7 @@ export default function useEmployees(initialData?: EmployeesInitialData) {
     clearFilters,
     addEmployeeLocally,
     updateEmployeeLocally,
-    removeEmployeeById
+    removeEmployeeById,
+    removeEmployeesByIds
   };
 }

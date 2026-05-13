@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 import type { Employee } from "@/types/employee";
 import DataTable from "@/shared/components/DataTable";
 import EmptyState from "@/shared/components/EmptyState";
@@ -16,6 +17,11 @@ export default function EmployeeDataTable({
   onSort,
   onEdit,
   onDelete,
+  selectedIds,
+  onToggleRow,
+  onToggleSelectAllOnPage,
+  allOnPageSelected,
+  someOnPageSelected,
 }: {
   loading: boolean;
   employees: Employee[];
@@ -25,11 +31,35 @@ export default function EmployeeDataTable({
   onSort: (field: SortField) => void;
   onEdit: (employee: Employee) => void;
   onDelete: (employee: Employee) => void;
+  selectedIds: Set<string>;
+  onToggleRow: (id: string) => void;
+  onToggleSelectAllOnPage: () => void;
+  allOnPageSelected: boolean;
+  someOnPageSelected: boolean;
 }) {
+  const selectAllRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (selectAllRef.current) {
+      selectAllRef.current.indeterminate = someOnPageSelected;
+    }
+  }, [someOnPageSelected]);
+
   return (
-    <DataTable minWidthClass="min-w-[980px]" tableClassName="density-table">
+    <DataTable minWidthClass="min-w-[1020px]" tableClassName="density-table">
       <thead className="sticky top-0 z-10">
         <tr className="border-b border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-900">
+          <th className="w-12 min-w-12 px-3 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+            <input
+              ref={selectAllRef}
+              type="checkbox"
+              checked={allOnPageSelected}
+              onChange={onToggleSelectAllOnPage}
+              disabled={loading || employees.length === 0}
+              className="h-4 w-4 cursor-pointer rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:bg-gray-800 dark:focus:ring-blue-400"
+              aria-label="Select all employees on this page"
+            />
+          </th>
           {[
             ["fullName", "Full Name", "left"],
             ["jobTitle", "Job Title", "left"],
@@ -68,7 +98,7 @@ export default function EmployeeDataTable({
           <TableSkeleton />
         ) : employees.length === 0 ? (
           <tr>
-            <td colSpan={7}>
+            <td colSpan={8}>
               <EmptyState
                 title={hasFilters ? "No employees match your filters." : "No employees yet."}
                 subtitle={hasFilters ? "Try adjusting your search or filters." : undefined}
@@ -97,6 +127,15 @@ export default function EmployeeDataTable({
               className="animate-fade-in-up group border-l-2 border-l-transparent transition-colors duration-150 hover:border-l-blue-400 hover:bg-blue-50/30 dark:hover:bg-blue-950/20"
               style={{ animationDelay: `${i * 25}ms`, opacity: 0 }}
             >
+              <td className="px-3 py-4 text-center">
+                <input
+                  type="checkbox"
+                  checked={selectedIds.has(emp.id)}
+                  onChange={() => onToggleRow(emp.id)}
+                  className="h-4 w-4 cursor-pointer rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:focus:ring-blue-400"
+                  aria-label={`Select ${emp.fullName}`}
+                />
+              </td>
               <td className="px-5 py-4">
                 <div className="flex items-center gap-3">
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700 transition-transform duration-150 group-hover:scale-110 dark:bg-blue-950/40 dark:text-blue-300">
@@ -147,6 +186,7 @@ export default function EmployeeDataTable({
                     </svg>
                   </Link>
                   <button
+                    type="button"
                     title="Edit employee"
                     onClick={() => onEdit(emp)}
                     className="rounded-lg p-1.5 text-gray-300 transition-all duration-150 hover:bg-blue-50 hover:text-blue-600 active:scale-90 dark:text-gray-500 dark:hover:bg-blue-950/30 dark:hover:text-blue-300"
@@ -156,6 +196,7 @@ export default function EmployeeDataTable({
                     </svg>
                   </button>
                   <button
+                    type="button"
                     title="Delete employee"
                     onClick={() => onDelete(emp)}
                     className="rounded-lg p-1.5 text-gray-300 transition-all duration-150 hover:bg-red-50 hover:text-red-500 active:scale-90 dark:text-gray-500 dark:hover:bg-red-950/30 dark:hover:text-red-300"
@@ -179,6 +220,9 @@ function TableSkeleton() {
     <>
       {Array.from({ length: 8 }).map((_, i) => (
         <tr key={i} className="animate-pulse border-b border-gray-100 dark:border-gray-800">
+          <td className="px-3 py-4">
+            <div className="mx-auto h-4 w-4 rounded border border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-800" />
+          </td>
           <td className="px-5 py-4">
             <div className="flex items-center gap-3">
               <div className="h-8 w-8 rounded-full bg-gray-100 dark:bg-gray-800" />
