@@ -14,7 +14,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="bg-gray-50 text-gray-900 antialiased transition-colors duration-300 dark:bg-gray-950 dark:text-gray-100">
+      <body className="app-shell min-h-dvh text-gray-900 antialiased transition-colors duration-300 dark:text-gray-100">
         <AppNav />
         {children}
       </body>

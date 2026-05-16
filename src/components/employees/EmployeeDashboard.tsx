@@ -178,7 +178,7 @@ export default function EmployeeDashboard({ initialData }: { initialData?: Emplo
   }
 
   return (
-    <div className="flex h-[calc(100dvh-56px)] flex-col overflow-hidden bg-gray-50 transition-colors duration-300 dark:bg-gray-950">
+    <div className="flex h-[calc(100dvh-56px)] flex-col overflow-hidden bg-transparent transition-colors duration-300 dark:bg-gray-950">
       <EmployeePageHeader
         onRunPayroll={() => {
           setPayrollError(null);

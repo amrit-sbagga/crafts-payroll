@@ -1,6 +1,35 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Light theme: medium blue band at top (~40vh), fades into gray-50 */
+html:not(.dark) body.app-shell {
+  --app-sky-height: min(40vh, 28rem);
+  --app-sky-top: #1e3a8a; /* blue-900 */
+  --app-sky-mid: #2563eb; /* blue-600 */
+  --app-sky-soft: #3b82f6; /* blue-500 */
+  --app-sky-light: #93c5fd; /* blue-300 */
+  --app-sky-page: #f9fafb; /* gray-50 */
+
+  background-color: var(--app-sky-page);
+  background-image: linear-gradient(
+    180deg,
+    var(--app-sky-top) 0%,
+    var(--app-sky-mid) 12%,
+    var(--app-sky-soft) 24%,
+    var(--app-sky-light) 36%,
+    color-mix(in srgb, var(--app-sky-light) 45%, var(--app-sky-page)) 46%,
+    transparent var(--app-sky-height)
+  );
+  background-repeat: no-repeat;
+  background-size: 100% var(--app-sky-height);
+  background-attachment: fixed;
+}
+
+html.dark body.app-shell {
+  background-color: #030712;
+  background-image: none;
+}
+
 @keyframes fade-in-up {
   from {
     opacity: 0;

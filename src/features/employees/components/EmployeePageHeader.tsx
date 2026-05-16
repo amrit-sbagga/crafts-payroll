@@ -7,7 +7,7 @@ type Props = {
 
 export default function EmployeePageHeader({ onRunPayroll, onAddEmployee }: Props) {
   return (
-    <header className="border-b border-gray-200 bg-white/95 backdrop-blur transition-colors duration-300 dark:border-gray-800 dark:bg-gray-950/90">
+    <header className="border-b border-gray-200/80 bg-white/75 backdrop-blur-md transition-colors duration-300 dark:border-gray-800 dark:bg-gray-950/90">
       <div className="density-header mx-auto flex w-full max-w-[1500px] flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <div className="min-w-0">
           <h1 className="text-lg font-semibold tracking-tight text-gray-900 sm:text-xl dark:text-gray-100">Employees</h1>

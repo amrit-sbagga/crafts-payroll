@@ -10,7 +10,7 @@ export default function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <header className="border-b border-gray-200 bg-white/95 backdrop-blur transition-colors duration-300 dark:border-gray-800 dark:bg-gray-950/90">
+    <header className="border-b border-gray-200/80 bg-white/75 backdrop-blur-md transition-colors duration-300 dark:border-gray-800 dark:bg-gray-950/90">
       <div className="mx-auto w-full max-w-[1500px] px-4 py-4 sm:px-6">
         <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
           <div>

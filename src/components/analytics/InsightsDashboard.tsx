@@ -109,7 +109,7 @@ export default function InsightsDashboard({ initialData }: { initialData?: Analy
 
   const anyLoading = summaryLoading || countryLoading || departmentLoading || jobLoading;
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 transition-colors duration-300 dark:bg-gray-950 dark:text-gray-100">
+    <div className="min-h-screen bg-transparent text-gray-900 transition-colors duration-300 dark:bg-gray-950 dark:text-gray-100">
 
       {/* ── Toast ── */}
       {toast && (
