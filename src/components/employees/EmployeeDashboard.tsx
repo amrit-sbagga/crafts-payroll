@@ -155,9 +155,11 @@ export default function EmployeeDashboard({ initialData }: { initialData?: Emplo
     setEditingEmployee(null);
     if (wasEditing) {
       updateEmployeeLocally(savedEmployee);
+      setSuccessToast(`Updated ${savedEmployee.fullName}`);
     } else {
       addEmployeeLocally(savedEmployee);
       refresh();
+      setSuccessToast(`Added ${savedEmployee.fullName}`);
     }
   }
 
