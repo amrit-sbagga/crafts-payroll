@@ -44,6 +44,9 @@ describe("/api/employees route handlers", () => {
     const json = await response.json();
 
     expect(response.status).toBe(200);
+    expect(response.headers.get("Cache-Control")).toBe(
+      "private, no-store, max-age=0"
+    );
     expect(mockedListEmployees).toHaveBeenCalledWith({
       page: 2,
       limit: 5,
