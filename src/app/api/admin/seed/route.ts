@@ -11,7 +11,16 @@ function badRequest(message: string) {
   return NextResponse.json({ error: message }, { status: 400 });
 }
 
-function parseSeedOptions(body: Record<string, unknown>) {
+type SeedOptions = {
+  count: number;
+  clean: boolean;
+};
+
+type SeedParseResult =
+  | { ok: true; options: SeedOptions }
+  | { ok: false; error: string };
+
+function parseSeedOptions(body: Record<string, unknown>): SeedParseResult {
   let count = 1000;
   if (body.count !== undefined) {
     if (
@@ -20,7 +29,10 @@ function parseSeedOptions(body: Record<string, unknown>) {
       body.count < 1 ||
       body.count > 10_000
     ) {
-      return { error: "count must be an integer between 1 and 10000" };
+      return {
+        ok: false,
+        error: "count must be an integer between 1 and 10000"
+      };
     }
     count = body.count;
   }
@@ -28,12 +40,12 @@ function parseSeedOptions(body: Record<string, unknown>) {
   let clean = false;
   if (body.clean !== undefined) {
     if (typeof body.clean !== "boolean") {
-      return { error: "clean must be a boolean" };
+      return { ok: false, error: "clean must be a boolean" };
     }
     clean = body.clean;
   }
 
-  return { options: { count, clean } };
+  return { ok: true, options: { count, clean } };
 }
 
 export async function POST(request: NextRequest) {
@@ -59,7 +71,7 @@ export async function POST(request: NextRequest) {
         ? (rawBody as Record<string, unknown>)
         : {};
     const parsed = parseSeedOptions(body);
-    if ("error" in parsed) return badRequest(parsed.error);
+    if (!parsed.ok) return badRequest(parsed.error);
     const { count, clean } = parsed.options;
     const result = await seedEmployees({ count, clean });
 
