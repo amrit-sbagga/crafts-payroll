@@ -26,7 +26,13 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
     const count = Number(body.count ?? 1000);
-    const clean = Boolean(body.clean ?? false);
+    if (body.clean !== undefined && typeof body.clean !== "boolean") {
+      return NextResponse.json(
+        { error: "clean must be a boolean" },
+        { status: 400 }
+      );
+    }
+    const clean = body.clean === true;
     const result = await seedEmployees({ count, clean });
 
     return NextResponse.json({
